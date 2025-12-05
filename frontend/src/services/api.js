@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5004/api";
+const API_URL = "https://newexpensetracker-yhwf.onrender.com/api";
 
 const api = axios.create({
   baseURL: API_URL,
