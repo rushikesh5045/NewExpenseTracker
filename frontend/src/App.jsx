@@ -11,7 +11,9 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import Statistics from "./pages/Statistics"; // Import the Statistics page
+import Statistics from "./pages/Statistics";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Layout from "./components/layout/Layout";
 import theme from "./theme/theme";
 import "./i18n";
@@ -96,7 +98,8 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
-
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             {/* Default route */}
             <Route path="/" element={<Navigate to="/dashboard" />} />
 

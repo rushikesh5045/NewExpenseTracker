@@ -119,5 +119,27 @@
   "Creating...": "Creating...",
   "Create": "Create",
 
-  "Balance": "Balance"
+  "Balance": "Balance",
+
+  "Forgot Password": "Forgot Password",
+  "Reset Your Password": "Reset Your Password",
+  "Enter your email address and we'll send you a link to reset your password.": "Enter your email address and we'll send you a link to reset your password.",
+  "Send Reset Link": "Send Reset Link",
+  "Back to Login": "Back to Login",
+  "Return to login": "Return to login",
+  "If your email is registered, you will receive a password reset link shortly.": "If your email is registered, you will receive a password reset link shortly.",
+  "Failed to process your request. Please try again.": "Failed to process your request. Please try again.",
+  "Please enter your email address": "Please enter your email address",
+  "Email Address": "Email Address",
+  "New Password": "New Password",
+  "Confirm New Password": "Confirm New Password",
+  "Please enter your new password.": "Please enter your new password.",
+  "Your password has been reset successfully! Redirecting to login...": "Your password has been reset successfully! Redirecting to login...",
+  "Reset Password": "Reset Password",
+  "Failed to reset password. Please try again.": "Failed to reset password. Please try again.",
+  "Validating your reset link...": "Validating your reset link...",
+  "Invalid or Expired Link": "Invalid or Expired Link",
+  "This password reset link is invalid or has expired.": "This password reset link is invalid or has expired.",
+  "Request New Reset Link": "Request New Reset Link",
+  "Forgot password?": "Forgot password?"
 }
