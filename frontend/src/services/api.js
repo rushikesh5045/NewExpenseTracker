@@ -75,4 +75,19 @@ export const deleteTransaction = (id) => {
 export const getTransactionSummary = (params) => {
   return api.get("/transactions/summary", { params });
 };
+
+// Request password reset
+export const forgotPassword = (email) => {
+  return api.post("/auth/forgot-password", { email });
+};
+
+// Reset password with token
+export const resetPassword = (token, password) => {
+  return api.post("/auth/reset-password", { token, password });
+};
+
+// Validate reset token
+export const validateResetToken = (token) => {
+  return api.get(`/auth/validate-reset-token/${token}`);
+};
 export default api;
