@@ -3,7 +3,6 @@ const User = require("../models/User");
 const PasswordReset = require("../models/PasswordReset");
 const { sendPasswordResetEmail } = require("../services/emailService");
 const crypto = require("crypto-js");
-const bcrypt = require("bcryptjs");
 
 // Generate JWT
 const generateToken = (id) => {
@@ -182,9 +181,7 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    user.password = password;
 
     // Save user with new password
     await user.save();
