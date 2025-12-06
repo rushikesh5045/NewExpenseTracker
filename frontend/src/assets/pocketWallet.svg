@@ -1,0 +1,32 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#outerGradient)" />
+
+  <!-- Inner White Circle -->
+  <circle cx="32" cy="32" r="18" fill="white" fill-opacity="0.94" />
+
+  <!-- Card -->
+  <rect x="22" y="23" width="20" height="18" rx="5" fill="#FFF4F0" />
+  <rect x="22" y="23" width="20" height="5" rx="5" fill="#FFE1DA" />
+  <rect x="25" y="30" width="9" height="2.2" rx="1.1" fill="#E8B0A5" />
+  <rect x="25" y="34" width="7" height="2.2" rx="1.1" fill="#F3C8BF" />
+
+  <!-- Rupee -->
+  <text x="38" y="34" text-anchor="middle" dominant-baseline="middle"
+    font-size="11" font-weight="700" font-family="system-ui" fill="#EB5A57">
+    ₹
+  </text>
+
+  <!-- Tick -->
+  <path d="M34 36 L37 39.5 L42 33"
+    stroke="#FF7A70" stroke-width="2.4"
+    stroke-linecap="round" stroke-linejoin="round" />
+
+  <defs>
+    <linearGradient id="outerGradient" x1="0" y1="0" x2="64" y2="64">
+      <stop offset="0%" stop-color="#FFC8A9"/>  <!-- peach -->
+      <stop offset="33%" stop-color="#FF9A76"/> <!-- orange-peach -->
+      <stop offset="66%" stop-color="#FF6F61"/> <!-- coral -->
+      <stop offset="100%" stop-color="#D177C8"/> <!-- purple/pink -->
+    </linearGradient>
+  </defs>
+</svg>
