@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Box,
@@ -8,9 +8,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemButton,
   ListSubheader,
-  Switch,
   TextField,
   Button,
   Dialog,
@@ -18,10 +16,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Snackbar,
   Paper,
@@ -30,28 +24,21 @@ import {
   InputAdornment,
   CircularProgress,
   useTheme,
+  Stack,
 } from "@mui/material";
 import {
   AccountCircle as AccountIcon,
-  Language as LanguageIcon,
-  Palette as ThemeIcon,
-  Notifications as NotificationIcon,
   Security as SecurityIcon,
-  Backup as BackupIcon,
   DeleteForever as DeleteIcon,
   FileDownload as ExportIcon,
-  Help as HelpIcon,
-  Info as InfoIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   Save as SaveIcon,
-  AttachMoney as CurrencyIcon,
-  DateRange as DateFormatIcon,
+  Cancel as CancelIcon,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
-import LanguageSelector from "../components/common/LanguageSelector";
 import {
   updateUserProfile,
   changePassword,
@@ -59,27 +46,8 @@ import {
   exportData,
 } from "../services/api";
 
-// Currency options
-const currencies = [
-  { code: "USD", symbol: "$", name: "US Dollar" },
-  { code: "EUR", symbol: "€", name: "Euro" },
-  { code: "GBP", symbol: "£", name: "British Pound" },
-  { code: "JPY", symbol: "¥", name: "Japanese Yen" },
-  { code: "INR", symbol: "₹", name: "Indian Rupee" },
-  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
-  { code: "CAD", symbol: "$", name: "Canadian Dollar" },
-  { code: "AUD", symbol: "$", name: "Australian Dollar" },
-];
-
-// Date format options
-const dateFormats = [
-  { code: "MM/DD/YYYY", name: "MM/DD/YYYY (US)" },
-  { code: "DD/MM/YYYY", name: "DD/MM/YYYY (EU)" },
-  { code: "YYYY-MM-DD", name: "YYYY-MM-DD (ISO)" },
-];
-
 const Settings = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { currentUser, updateUser, logout } = useAuth();
   const theme = useTheme();
 
@@ -103,21 +71,6 @@ const Settings = () => {
     confirm: false,
   });
   const [changingPassword, setChangingPassword] = useState(false);
-
-  // State for preferences
-  const [preferences, setPreferences] = useState({
-    language: localStorage.getItem("language") || "en",
-    currency: localStorage.getItem("currency") || "INR",
-    currencySymbol: localStorage.getItem("currencySymbol") || "₹",
-    theme: localStorage.getItem("theme") || "light",
-    dateFormat: localStorage.getItem("dateFormat") || "MM/DD/YYYY",
-  });
-
-  // State for notifications
-  const [notifications, setNotifications] = useState({
-    email: localStorage.getItem("emailNotifications") === "true",
-    push: localStorage.getItem("pushNotifications") === "true",
-  });
 
   // State for dialogs
   const [dialogs, setDialogs] = useState({
@@ -146,6 +99,12 @@ const Settings = () => {
         email: currentUser?.email || "",
       });
     }
+  };
+
+  // Handle profile cancel edit
+  const handleCancelEdit = () => {
+    setProfileEdit(false);
+    setErrors({});
   };
 
   // Handle profile data change
@@ -294,62 +253,6 @@ const Settings = () => {
     }
   };
 
-  // Handle preference change
-  const handlePreferenceChange = (name, value) => {
-    setPreferences({
-      ...preferences,
-      [name]: value,
-    });
-
-    // Save to localStorage
-    localStorage.setItem(name, value);
-
-    // Handle special cases
-    if (name === "language") {
-      i18n.changeLanguage(value);
-    } else if (name === "currency") {
-      // Find the currency symbol
-      const currency = currencies.find((c) => c.code === value);
-      if (currency) {
-        setPreferences((prev) => ({
-          ...prev,
-          currencySymbol: currency.symbol,
-        }));
-        localStorage.setItem("currencySymbol", currency.symbol);
-      }
-    } else if (name === "theme") {
-      // Apply theme change (you'll need to implement theme switching)
-      document.documentElement.setAttribute("data-theme", value);
-    }
-
-    // Show success notification
-    setNotification({
-      open: true,
-      message: t("Preference updated"),
-      severity: "success",
-    });
-  };
-
-  // Handle notification toggle
-  const handleNotificationToggle = (name) => {
-    const newValue = !notifications[name];
-
-    setNotifications({
-      ...notifications,
-      [name]: newValue,
-    });
-
-    // Save to localStorage
-    localStorage.setItem(`${name}Notifications`, newValue.toString());
-
-    // Show success notification
-    setNotification({
-      open: true,
-      message: t("Notification settings updated"),
-      severity: "success",
-    });
-  };
-
   // Handle dialog open/close
   const handleDialog = (dialog, open) => {
     setDialogs({
@@ -496,28 +399,44 @@ const Settings = () => {
               <ListItem
                 secondaryAction={
                   profileEdit ? (
-                    <Button
-                      onClick={handleSaveProfile}
-                      disabled={savingProfile}
-                      startIcon={
-                        savingProfile ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <SaveIcon />
-                        )
-                      }
-                      color="primary"
-                    >
-                      {savingProfile ? t("Saving...") : t("Save")}
-                    </Button>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        onClick={handleCancelEdit}
+                        color="inherit"
+                        startIcon={<CancelIcon />}
+                      >
+                        {t("Cancel")}
+                      </Button>
+                      <Button
+                        onClick={handleSaveProfile}
+                        disabled={savingProfile}
+                        variant="contained"
+                        startIcon={
+                          savingProfile ? (
+                            <CircularProgress size={20} />
+                          ) : (
+                            <SaveIcon />
+                          )
+                        }
+                        color="primary"
+                      >
+                        {savingProfile ? t("Saving...") : t("Save")}
+                      </Button>
+                    </Stack>
                   ) : (
                     <IconButton edge="end" onClick={handleEditProfile}>
                       <EditIcon />
                     </IconButton>
                   )
                 }
+                sx={{
+                  alignItems: "flex-start",
+                  "& .MuiListItemSecondaryAction-root": {
+                    top: profileEdit ? "16px" : "24px",
+                  },
+                }}
               >
-                <ListItemIcon>
+                <ListItemIcon sx={{ mt: 0.5 }}>
                   <AccountIcon />
                 </ListItemIcon>
                 <ListItemText
@@ -722,195 +641,8 @@ const Settings = () => {
           </Paper>
         </Grid>
 
-        {/* Preferences Section */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 0,
-              borderRadius: theme.shape.borderRadius,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-            }}
-          >
-            <List
-              subheader={
-                <ListSubheader
-                  component="div"
-                  sx={{ bgcolor: "background.paper" }}
-                >
-                  {t("Preferences")}
-                </ListSubheader>
-              }
-            >
-              {/* Language */}
-              <ListItem>
-                <ListItemIcon>
-                  <LanguageIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Language")}
-                  secondary={t("Select your preferred language")}
-                />
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
-                    value={preferences.language}
-                    onChange={(e) =>
-                      handlePreferenceChange("language", e.target.value)
-                    }
-                    displayEmpty
-                  >
-                    <MenuItem value="en">English</MenuItem>
-                    <MenuItem value="hi">हिंदी</MenuItem>
-                    <MenuItem value="mr">मराठी</MenuItem>
-                  </Select>
-                </FormControl>
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Currency */}
-              <ListItem>
-                <ListItemIcon>
-                  <CurrencyIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Currency")}
-                  secondary={t("Select your preferred currency")}
-                />
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
-                    value={preferences.currency}
-                    onChange={(e) =>
-                      handlePreferenceChange("currency", e.target.value)
-                    }
-                    displayEmpty
-                  >
-                    {currencies.map((currency) => (
-                      <MenuItem key={currency.code} value={currency.code}>
-                        {currency.symbol} {currency.code}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Date Format */}
-              <ListItem>
-                <ListItemIcon>
-                  <DateFormatIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Date Format")}
-                  secondary={t("Select your preferred date format")}
-                />
-                <FormControl size="small" sx={{ minWidth: 150 }}>
-                  <Select
-                    value={preferences.dateFormat}
-                    onChange={(e) =>
-                      handlePreferenceChange("dateFormat", e.target.value)
-                    }
-                    displayEmpty
-                  >
-                    {dateFormats.map((format) => (
-                      <MenuItem key={format.code} value={format.code}>
-                        {format.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Theme */}
-              <ListItem>
-                <ListItemIcon>
-                  <ThemeIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Theme")}
-                  secondary={t("Select light or dark theme")}
-                />
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
-                    value={preferences.theme}
-                    onChange={(e) =>
-                      handlePreferenceChange("theme", e.target.value)
-                    }
-                    displayEmpty
-                  >
-                    <MenuItem value="light">{t("Light")}</MenuItem>
-                    <MenuItem value="dark">{t("Dark")}</MenuItem>
-                  </Select>
-                </FormControl>
-              </ListItem>
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* Notifications & Data Management Section */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 0,
-              borderRadius: theme.shape.borderRadius,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-              mb: 3,
-            }}
-          >
-            <List
-              subheader={
-                <ListSubheader
-                  component="div"
-                  sx={{ bgcolor: "background.paper" }}
-                >
-                  {t("Notifications")}
-                </ListSubheader>
-              }
-            >
-              {/* Email Notifications */}
-              <ListItem>
-                <ListItemIcon>
-                  <NotificationIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Email Notifications")}
-                  secondary={t("Receive important updates via email")}
-                />
-                <Switch
-                  edge="end"
-                  checked={notifications.email}
-                  onChange={() => handleNotificationToggle("email")}
-                />
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Push Notifications */}
-              <ListItem>
-                <ListItemIcon>
-                  <NotificationIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Push Notifications")}
-                  secondary={t("Receive notifications on your device")}
-                />
-                <Switch
-                  edge="end"
-                  checked={notifications.push}
-                  onChange={() => handleNotificationToggle("push")}
-                />
-              </ListItem>
-            </List>
-          </Paper>
-
+        {/* Data Management Section */}
+        <Grid item xs={12}>
           <Paper
             elevation={0}
             sx={{
@@ -971,102 +703,11 @@ const Settings = () => {
               </ListItem>
 
               <Divider component="li" />
-
-              {/* Backup */}
-              <ListItem>
-                <ListItemIcon>
-                  <BackupIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Backup & Restore")}
-                  secondary={t("Create backups and restore your data")}
-                />
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<BackupIcon />}
-                >
-                  {t("Backup")}
-                </Button>
-              </ListItem>
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* About & Help Section */}
-        <Grid item xs={12}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 0,
-              borderRadius: theme.shape.borderRadius,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-            }}
-          >
-            <List
-              subheader={
-                <ListSubheader
-                  component="div"
-                  sx={{ bgcolor: "background.paper" }}
-                >
-                  {t("About & Help")}
-                </ListSubheader>
-              }
-            >
-              {/* App Version */}
-              <ListItem>
-                <ListItemIcon>
-                  <InfoIcon />
-                </ListItemIcon>
-                <ListItemText primary={t("App Version")} secondary="1.0.0" />
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Contact Support */}
-              <ListItemButton component="a" href="mailto:support@example.com">
-                <ListItemIcon>
-                  <HelpIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Contact Support")}
-                  secondary="support@example.com"
-                />
-              </ListItemButton>
-
-              <Divider component="li" />
-
-              {/* Privacy Policy */}
-              <ListItemButton
-                component="a"
-                href="/privacy-policy"
-                target="_blank"
-              >
-                <ListItemIcon>
-                  <InfoIcon />
-                </ListItemIcon>
-                <ListItemText primary={t("Privacy Policy")} />
-              </ListItemButton>
-
-              <Divider component="li" />
-
-              {/* Terms of Service */}
-              <ListItemButton
-                component="a"
-                href="/terms-of-service"
-                target="_blank"
-              >
-                <ListItemIcon>
-                  <InfoIcon />
-                </ListItemIcon>
-                <ListItemText primary={t("Terms of Service")} />
-              </ListItemButton>
             </List>
           </Paper>
         </Grid>
       </Grid>
+
       {/* Delete Account Dialog */}
       <Dialog
         open={dialogs.deleteAccount}
