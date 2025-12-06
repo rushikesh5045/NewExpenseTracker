@@ -90,4 +90,50 @@ export const resetPassword = (token, password) => {
 export const validateResetToken = (token) => {
   return api.get(`/auth/validate-reset-token/${token}`);
 };
+
+// Update user profile
+export const updateUserProfile = (profileData) => {
+  return api.put("/users/profile", profileData);
+};
+
+// Change password
+export const changePassword = (passwordData) => {
+  return api.put("/users/change-password", passwordData);
+};
+
+// Delete account
+export const deleteAccount = () => {
+  return api.delete("/users/account");
+};
+
+// Export data
+export const exportData = (format) => {
+  return api.get(`/data/export?format=${format}`, {
+    responseType: "blob", // Important for file downloads
+  });
+};
+
+// Clear all user data
+export const clearAllData = () => {
+  return api.delete("/data/clear-all");
+};
+
+// Backup data
+export const backupData = () => {
+  return api.get("/data/backup", {
+    responseType: "blob",
+  });
+};
+
+// Restore data
+export const restoreData = (backupFile) => {
+  const formData = new FormData();
+  formData.append("backup", backupFile);
+
+  return api.post("/data/restore", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 export default api;

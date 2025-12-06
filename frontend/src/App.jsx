@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,12 +13,12 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Statistics from "./pages/Statistics";
+import Settings from "./pages/Settings";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Layout from "./components/layout/Layout";
-import theme from "./theme/theme";
+import { createAppTheme } from "./theme/theme";
 import "./i18n";
-
 // Protected route component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -30,6 +31,21 @@ const ProtectedRoute = ({ children }) => {
 };
 
 const App = () => {
+  const [themeMode, setThemeMode] = useState(
+    localStorage.getItem("theme") || "light"
+  );
+  const theme = React.useMemo(() => createAppTheme(themeMode), [themeMode]);
+
+  // Listen for theme changes in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newTheme = localStorage.getItem("theme") || "light";
+      setThemeMode(newTheme);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -68,8 +84,7 @@ const App = () => {
               element={
                 <ProtectedRoute>
                   <Layout>
-                    {/* Will implement Settings page later */}
-                    <div>Settings Page (Coming Soon)</div>
+                    <Settings />
                   </Layout>
                 </ProtectedRoute>
               }

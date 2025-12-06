@@ -8,7 +8,10 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
-
+  const updateUser = (userData) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    setCurrentUser(userData);
+  };
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
@@ -36,6 +39,7 @@ export const AuthProvider = ({ children }) => {
     token,
     login,
     logout,
+    updateUser, // Add this to the context value
     isAuthenticated: !!token,
   };
 
