@@ -1,5 +1,7 @@
 // controllers/userController.js
 const User = require("../models/User");
+const Transaction = require("../models/Transaction");
+const Category = require("../models/Category");
 const bcrypt = require("bcryptjs");
 
 // @desc    Update user profile

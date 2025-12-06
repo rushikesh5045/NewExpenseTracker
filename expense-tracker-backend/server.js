@@ -37,8 +37,8 @@ app.use((req, res, next) => {
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/categories", require("./routes/categoryRoutes"));
 app.use("/api/transactions", require("./routes/transactionRoutes"));
-app.use("/api/users", require("./routes/userRoutes")); // Add this line
-app.use("/api/data", require("./routes/dataRoutes")); // Add this line
+app.use("/api/users", require("./routes/userRoutes"));
+app.use("/api/data", require("./routes/dataRoutes"));
 
 // Basic route
 app.get("/", (req, res) => {
