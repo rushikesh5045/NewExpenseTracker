@@ -7,11 +7,12 @@ import {
   Skeleton,
   useTheme,
 } from "@mui/material";
-import {
-  TrendingUp as IncomeIcon,
-  TrendingDown as ExpenseIcon,
-} from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
+
+// Use rounded Material Icons for Google Pay style
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 
 const SummaryCard = ({ summary, loading }) => {
   const { t } = useTranslation();
@@ -31,49 +32,80 @@ const SummaryCard = ({ summary, loading }) => {
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 4,
+        borderRadius: 3, // Google Pay uses more rounded corners
         overflow: "hidden",
-        bgcolor: "background.paper",
+        bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#303134",
         border: "1px solid",
-        borderColor: "divider",
+        borderColor: theme.palette.divider,
+        boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
       }}
     >
-      {/* Balance */}
-      <Box sx={{ textAlign: "center", p: 3, pb: 2 }}>
-        <Typography variant="body1" color="text.secondary" gutterBottom>
-          {t("Current Balance")}
-        </Typography>
+      {/* Balance - Google Pay style */}
+      <Box
+        sx={{
+          p: 3,
+          pb: 2.5,
+          backgroundColor: theme.palette.primary.main, // Google Pay blue background
+          color: "#ffffff",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mb: 1.5,
+          }}
+        >
+          <AccountBalanceWalletRoundedIcon
+            fontSize="small"
+            sx={{ mr: 1, opacity: 0.9 }}
+          />
+          <Typography
+            variant="body2"
+            sx={{
+              opacity: 0.9,
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+            }}
+          >
+            {t("Current Balance")}
+          </Typography>
+        </Box>
 
         {loading ? (
           <Skeleton
             variant="text"
             width="60%"
             height={48}
-            sx={{ mx: "auto" }}
+            sx={{
+              mx: "auto",
+              bgcolor: "rgba(255,255,255,0.2)",
+            }}
           />
         ) : (
           <Typography
             variant="h4"
             component="p"
-            fontWeight="medium"
-            color={summary.balance >= 0 ? "success.main" : "error.main"}
-            sx={{ mt: 1 }}
+            sx={{
+              textAlign: "center",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 400,
+              fontSize: "2rem",
+            }}
           >
-            ₹{summary.balance.toLocaleString()}
+            {formatCurrency(summary.balance)}
           </Typography>
         )}
       </Box>
 
-      <Divider />
-
-      {/* Income and Expense */}
+      {/* Income and Expense - Google Pay style */}
       <Box sx={{ display: "flex" }}>
         {/* Income */}
         <Box
           sx={{
             flex: 1,
-            textAlign: "center",
-            p: 2,
+            p: 2.5,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -87,17 +119,40 @@ const SummaryCard = ({ summary, loading }) => {
               mb: 1,
             }}
           >
-            <IncomeIcon
-              fontSize="small"
+            <Box
               sx={{
-                color: "success.main",
-                mr: 0.5,
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? "rgba(30, 142, 62, 0.08)" // Light green background
+                    : "rgba(30, 142, 62, 0.16)", // Darker green background for dark mode
+                mb: 1,
               }}
-            />
-            <Typography variant="body2" color="text.secondary">
-              {t("Income")}
-            </Typography>
+            >
+              <TrendingUpRoundedIcon
+                fontSize="small"
+                sx={{
+                  color: theme.palette.success.main,
+                }}
+              />
+            </Box>
           </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              mb: 0.5,
+            }}
+          >
+            {t("Income")}
+          </Typography>
 
           {loading ? (
             <Skeleton variant="text" width={80} height={32} />
@@ -105,10 +160,13 @@ const SummaryCard = ({ summary, loading }) => {
             <Typography
               variant="h6"
               component="p"
-              fontWeight="medium"
-              color="success.main"
+              sx={{
+                color: theme.palette.success.main,
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+              }}
             >
-              ₹{summary.income.toLocaleString()}
+              {formatCurrency(summary.income)}
             </Typography>
           )}
         </Box>
@@ -119,8 +177,7 @@ const SummaryCard = ({ summary, loading }) => {
         <Box
           sx={{
             flex: 1,
-            textAlign: "center",
-            p: 2,
+            p: 2.5,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -134,17 +191,40 @@ const SummaryCard = ({ summary, loading }) => {
               mb: 1,
             }}
           >
-            <ExpenseIcon
-              fontSize="small"
+            <Box
               sx={{
-                color: "error.main",
-                mr: 0.5,
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor:
+                  theme.palette.mode === "light"
+                    ? "rgba(217, 48, 37, 0.08)" // Light red background
+                    : "rgba(217, 48, 37, 0.16)", // Darker red background for dark mode
+                mb: 1,
               }}
-            />
-            <Typography variant="body2" color="text.secondary">
-              {t("Expense")}
-            </Typography>
+            >
+              <TrendingDownRoundedIcon
+                fontSize="small"
+                sx={{
+                  color: theme.palette.error.main,
+                }}
+              />
+            </Box>
           </Box>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              mb: 0.5,
+            }}
+          >
+            {t("Expense")}
+          </Typography>
 
           {loading ? (
             <Skeleton variant="text" width={80} height={32} />
@@ -152,10 +232,13 @@ const SummaryCard = ({ summary, loading }) => {
             <Typography
               variant="h6"
               component="p"
-              fontWeight="medium"
-              color="error.main"
+              sx={{
+                color: theme.palette.error.main,
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+              }}
             >
-              ₹{summary.expense.toLocaleString()}
+              {formatCurrency(summary.expense)}
             </Typography>
           )}
         </Box>

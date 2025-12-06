@@ -13,36 +13,33 @@ import {
   CircularProgress,
   ToggleButtonGroup,
   ToggleButton,
-  FormControl,
   FormHelperText,
-  InputLabel,
-  Select,
-  MenuItem,
   useTheme,
+  alpha,
 } from "@mui/material";
-import {
-  Close as CloseIcon,
-  Add as AddIcon,
-  Remove as RemoveIcon,
-  Palette as PaletteIcon,
-} from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { createCategory } from "../../services/api";
 
-// Predefined colors for category selection
+// Replace with Material Symbols for Google Pay look
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
+import ColorLensRoundedIcon from "@mui/icons-material/ColorLensRounded";
+
+// Google Pay color palette
 const categoryColors = [
-  "#4CAF50", // Green
-  "#2196F3", // Blue
-  "#9C27B0", // Purple
-  "#F44336", // Red
-  "#FF9800", // Orange
-  "#795548", // Brown
-  "#607D8B", // Blue Grey
-  "#E91E63", // Pink
-  "#00BCD4", // Cyan
-  "#FFEB3B", // Yellow
-  "#9E9E9E", // Grey
-  "#3F51B5", // Indigo
+  "#1a73e8", // Google Blue
+  "#d93025", // Google Red
+  "#1e8e3e", // Google Green
+  "#f9ab00", // Google Yellow
+  "#9334e6", // Purple
+  "#fa903e", // Orange
+  "#1bb8c4", // Teal
+  "#d01884", // Pink
+  "#5f6368", // Gray
+  "#188038", // Dark Green
+  "#c5221f", // Dark Red
+  "#24c1e0", // Light Blue
 ];
 
 const AddCategoryModal = ({
@@ -155,9 +152,10 @@ const AddCategoryModal = ({
       fullWidth
       maxWidth="xs"
       PaperProps={{
+        elevation: 0,
         sx: {
-          borderRadius: theme.shape.borderRadius,
-          maxHeight: "90vh",
+          borderRadius: 3, // Google Pay uses more rounded corners
+          overflow: "hidden",
         },
       }}
     >
@@ -167,66 +165,107 @@ const AddCategoryModal = ({
           justifyContent: "space-between",
           alignItems: "center",
           pb: 1,
+          pt: 2,
+          px: 3,
         }}
       >
-        <Typography variant="h6">{t("Add Category")}</Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 500,
+            fontSize: "1.125rem",
+          }}
+        >
+          {t("Add Category")}
+        </Typography>
         <IconButton
           edge="end"
-          color="inherit"
           onClick={onClose}
           aria-label="close"
+          sx={{
+            color:
+              theme.palette.mode === "light"
+                ? "rgba(0,0,0,0.54)"
+                : "rgba(255,255,255,0.7)",
+          }}
         >
-          <CloseIcon />
+          <CloseRoundedIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers>
-        {/* Category Type Toggle */}
-        <Box sx={{ mb: 3, display: "flex", justifyContent: "center" }}>
+      <DialogContent
+        sx={{
+          px: 3,
+          py: 2,
+          "&.MuiDialogContent-dividers": {
+            borderTop: "none",
+            borderBottom: "none",
+          },
+        }}
+      >
+        {/* Category Type Toggle - Google Pay style toggle */}
+        <Box sx={{ mb: 3 }}>
           <ToggleButtonGroup
             value={formData.type}
             exclusive
             onChange={handleTypeChange}
             aria-label="category type"
-            color="primary"
-            sx={{ width: "100%" }}
+            fullWidth
+            sx={{
+              "& .MuiToggleButtonGroup-grouped": {
+                borderRadius: "20px !important", // Pill shape like Google Pay
+                mx: 0,
+                border: `1px solid ${theme.palette.divider}`,
+                "&.Mui-selected": {
+                  boxShadow: "none",
+                },
+                height: 40,
+              },
+            }}
           >
             <ToggleButton
               value="income"
               aria-label="income"
               sx={{
-                flex: 1,
-                py: 1,
-                color: "success.main",
+                px: 3,
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+                textTransform: "none",
+                fontSize: "0.875rem",
+                color: theme.palette.success.main,
                 "&.Mui-selected": {
-                  color: "white",
-                  backgroundColor: "success.main",
+                  color: "#fff",
+                  backgroundColor: theme.palette.success.main,
                 },
               }}
             >
-              <AddIcon sx={{ mr: 1 }} />
+              <AddRoundedIcon sx={{ mr: 1, fontSize: 20 }} />
               {t("Income")}
             </ToggleButton>
             <ToggleButton
               value="expense"
               aria-label="expense"
               sx={{
-                flex: 1,
-                py: 1,
-                color: "error.main",
+                px: 3,
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+                textTransform: "none",
+                fontSize: "0.875rem",
+                color: theme.palette.error.main,
                 "&.Mui-selected": {
-                  color: "white",
-                  backgroundColor: "error.main",
+                  color: "#fff",
+                  backgroundColor: theme.palette.error.main,
                 },
               }}
             >
-              <RemoveIcon sx={{ mr: 1 }} />
+              <RemoveRoundedIcon sx={{ mr: 1, fontSize: 20 }} />
               {t("Expense")}
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
 
-        {/* Category Name */}
+        {/* Category Name - Google Pay style text field */}
         <TextField
           autoFocus
           margin="dense"
@@ -240,37 +279,79 @@ const AddCategoryModal = ({
           onChange={handleChange}
           error={!!errors.name}
           helperText={errors.name}
-          sx={{ mb: 3 }}
+          sx={{
+            mb: 3,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                borderWidth: 2,
+                borderColor: theme.palette.primary.main,
+              },
+            },
+            "& .MuiInputLabel-root": {
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+            },
+            "& .MuiInputBase-input": {
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+            },
+          }}
         />
 
-        {/* Color Selection */}
+        {/* Color Selection - Google Pay style color picker */}
         <Box sx={{ mb: 3 }}>
           <Typography
             variant="subtitle2"
             gutterBottom
-            sx={{ display: "flex", alignItems: "center" }}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              color: theme.palette.text.primary,
+              mb: 1.5,
+            }}
           >
-            <PaletteIcon fontSize="small" sx={{ mr: 1 }} />
+            <ColorLensRoundedIcon
+              fontSize="small"
+              sx={{
+                mr: 1,
+                color: theme.palette.primary.main,
+              }}
+            />
             {t("Select Color")}
           </Typography>
 
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(6, 1fr)",
+              gap: 1.5,
+              mt: 1,
+            }}
+          >
             {categoryColors.map((color) => (
               <Box
                 key={color}
                 onClick={() => handleColorSelect(color)}
                 sx={{
-                  width: 36,
-                  height: 36,
+                  width: 40,
+                  height: 40,
                   bgcolor: color,
                   borderRadius: "50%",
                   cursor: "pointer",
                   border:
                     formData.color === color
-                      ? "2px solid black"
+                      ? `2px solid ${
+                          theme.palette.mode === "dark" ? "#fff" : "#000"
+                        }`
                       : "2px solid transparent",
+                  boxShadow:
+                    formData.color === color
+                      ? `0 0 0 2px ${alpha(color, 0.3)}`
+                      : "none",
+                  transition: "all 0.2s ease",
                   "&:hover": {
-                    opacity: 0.8,
+                    transform: "scale(1.05)",
                   },
                 }}
               />
@@ -278,20 +359,59 @@ const AddCategoryModal = ({
           </Box>
 
           {errors.color && (
-            <FormHelperText error>{errors.color}</FormHelperText>
+            <FormHelperText
+              error
+              sx={{
+                mt: 1,
+                ml: 1.5,
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              }}
+            >
+              {errors.color}
+            </FormHelperText>
           )}
         </Box>
 
         {/* Submit Error */}
         {errors.submit && (
-          <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+          <Typography
+            color="error"
+            variant="body2"
+            sx={{
+              mt: 2,
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              backgroundColor: alpha(theme.palette.error.main, 0.1),
+              p: 1.5,
+              borderRadius: 1,
+            }}
+          >
             {errors.submit}
           </Typography>
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} color="inherit">
+      <DialogActions
+        sx={{
+          px: 3,
+          py: 2,
+          justifyContent: "flex-end",
+        }}
+      >
+        <Button
+          onClick={onClose}
+          color="inherit"
+          sx={{
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 500,
+            borderRadius: 20, // Google Pay's pill-shaped buttons
+            px: 3,
+            color:
+              theme.palette.mode === "light"
+                ? "rgba(0,0,0,0.6)"
+                : "rgba(255,255,255,0.7)",
+          }}
+        >
           {t("Cancel")}
         </Button>
         <Button
@@ -299,7 +419,21 @@ const AddCategoryModal = ({
           variant="contained"
           color="primary"
           disabled={isSubmitting}
-          startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+          disableElevation
+          sx={{
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 500,
+            borderRadius: 20, // Google Pay's pill-shaped buttons
+            px: 3,
+            py: 1,
+            boxShadow: "none",
+            "&:hover": {
+              boxShadow:
+                "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
+            },
+          }}
+          startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
           {isSubmitting ? t("Creating...") : t("Create")}
         </Button>

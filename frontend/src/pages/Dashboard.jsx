@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx (update)
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -18,15 +17,10 @@ import {
   AccordionSummary,
   AccordionDetails,
   Divider,
+  alpha,
+  Fade,
+  useMediaQuery,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  CalendarToday as CalendarIcon,
-  Today as TodayIcon,
-  ExpandMore as ExpandMoreIcon,
-} from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import SummaryCard from "../components/dashboard/SummaryCard";
@@ -37,10 +31,24 @@ import AddTransactionModal from "../components/transactions/AddTransactionModal"
 import DatePickerDialog from "../components/dashboard/DatePickerDialog";
 import { getTransactions, getTransactionSummary } from "../services/api";
 
+// Google-style rounded icons
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import TodayRoundedIcon from "@mui/icons-material/TodayRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
+import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+
 const Dashboard = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // State for view type (day, month, year)
   const [viewType, setViewType] = useState("month");
@@ -143,6 +151,16 @@ const Dashboard = () => {
       localStorage.getItem("language") || "en",
       options[viewType]
     ).format(currentDate);
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(localStorage.getItem("language") || "en", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   // Open date picker dialog
@@ -346,7 +364,7 @@ const Dashboard = () => {
     if (loading) {
       return (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress />
+          <CircularProgress size={40} thickness={4} />
         </Box>
       );
     }
@@ -359,6 +377,7 @@ const Dashboard = () => {
       <TransactionList
         transactions={transactions}
         onUpdate={() => fetchData()}
+        onAddTransaction={handleOpenAddModal}
       />
     );
   };
@@ -377,17 +396,84 @@ const Dashboard = () => {
             py: 6,
             textAlign: "center",
             bgcolor: "background.paper",
-            borderRadius: theme.shape.borderRadius,
+            borderRadius: 3,
             border: "1px dashed",
             borderColor: "divider",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: 200,
           }}
         >
-          <Typography variant="body1" color="text.secondary">
-            {t("No transactions found")}
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.04)",
+              mb: 2,
+            }}
+          >
+            <ReceiptLongRoundedIcon
+              sx={{
+                fontSize: 28,
+                color:
+                  theme.palette.mode === "light"
+                    ? "rgba(0,0,0,0.54)"
+                    : "rgba(255,255,255,0.7)",
+              }}
+            />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "1rem",
+              color: "text.primary",
+              mb: 1,
+            }}
+          >
+            {t("No transactions yet")}
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {t("Add a new transaction to get started")}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              mb: 3,
+              maxWidth: 260,
+              mx: "auto",
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+            }}
+          >
+            {t("Add your first transaction to start tracking your finances")}
           </Typography>
+
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddRoundedIcon />}
+            onClick={handleOpenAddModal}
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px", // Google Pay's pill-shaped buttons
+              px: 3,
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow:
+                  "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
+              },
+            }}
+          >
+            {t("Add Transaction")}
+          </Button>
         </Box>
       );
     }
@@ -405,31 +491,33 @@ const Dashboard = () => {
               onChange={handleAccordionChange(month)}
               sx={{
                 mb: 2,
-                borderRadius: theme.shape.borderRadius,
+                borderRadius: 3,
                 "&:before": { display: "none" }, // Remove the default divider
                 boxShadow: "none",
                 border: "1px solid",
                 borderColor: "divider",
                 overflow: "hidden",
               }}
+              elevation={0}
             >
               <AccordionSummary
                 expandIcon={
                   <Box
                     sx={{
-                      backgroundColor: "rgba(0, 0, 0, 0.04)", // Subtle background
-                      borderRadius: "50%", // Circular background
+                      backgroundColor: alpha(theme.palette.action.active, 0.04),
+                      borderRadius: "50%",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: 0.5, // Add some padding around the icon
+                      padding: 0.5,
+                      width: 32,
+                      height: 32,
                     }}
                   >
-                    <ExpandMoreIcon
+                    <ExpandMoreRoundedIcon
                       sx={{
-                        fontWeight: "bold", // Make the icon bold
-                        stroke: "currentColor",
-                        strokeWidth: 0.5, // This helps make the icon appear bolder
+                        fontSize: "1.25rem",
+                        color: theme.palette.text.secondary,
                       }}
                     />
                   </Box>
@@ -440,6 +528,8 @@ const Dashboard = () => {
                   backgroundColor: "background.paper",
                   borderBottom: expandedMonth === month ? "1px solid" : "none",
                   borderBottomColor: "divider",
+                  minHeight: 64,
+                  px: 3,
                 }}
               >
                 <Box
@@ -451,48 +541,86 @@ const Dashboard = () => {
                     mr: 3,
                   }}
                 >
-                  <Typography variant="subtitle1" fontWeight="medium">
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontFamily: '"Google Sans", "Roboto", sans-serif',
+                      fontWeight: 500,
+                    }}
+                  >
                     {monthName}
                   </Typography>
                   <Box sx={{ display: "flex", gap: 3 }}>
                     <Box sx={{ textAlign: "right" }}>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily:
+                            '"Google Sans Text", "Roboto", sans-serif',
+                          fontSize: "0.75rem",
+                        }}
+                      >
                         {t("Income")}
                       </Typography>
                       <Typography
                         variant="body1"
                         color="success.main"
-                        fontWeight="medium"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                          fontWeight: 500,
+                        }}
                       >
-                        ₹{monthSummary.income.toLocaleString()}
+                        {formatCurrency(monthSummary.income)}
                       </Typography>
                     </Box>
                     <Box sx={{ textAlign: "right" }}>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily:
+                            '"Google Sans Text", "Roboto", sans-serif',
+                          fontSize: "0.75rem",
+                        }}
+                      >
                         {t("Expense")}
                       </Typography>
                       <Typography
                         variant="body1"
                         color="error.main"
-                        fontWeight="medium"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                          fontWeight: 500,
+                        }}
                       >
-                        ₹{monthSummary.expense.toLocaleString()}
+                        {formatCurrency(monthSummary.expense)}
                       </Typography>
                     </Box>
                     <Box sx={{ textAlign: "right", minWidth: 100 }}>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily:
+                            '"Google Sans Text", "Roboto", sans-serif',
+                          fontSize: "0.75rem",
+                        }}
+                      >
                         {t("Balance")}
                       </Typography>
                       <Typography
                         variant="body1"
-                        fontWeight="medium"
-                        color={
-                          monthSummary.balance >= 0
-                            ? "success.main"
-                            : "error.main"
-                        }
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                          fontWeight: 500,
+                          color:
+                            monthSummary.balance >= 0
+                              ? "success.main"
+                              : "error.main",
+                        }}
                       >
-                        ₹{monthSummary.balance.toLocaleString()}
+                        {formatCurrency(monthSummary.balance)}
                       </Typography>
                     </Box>
                   </Box>
@@ -513,7 +641,7 @@ const Dashboard = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ pb: 7 }}>
+    <Container maxWidth="sm" sx={{ pb: 10 }}>
       {/* Header with Language Selector */}
       <Box
         sx={{
@@ -525,23 +653,39 @@ const Dashboard = () => {
         }}
       >
         <Box>
-          <Typography variant="h5" component="h1" fontWeight="medium">
-            {t("Dashboard")}
+          <Typography
+            variant="h5"
+            component="h1"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 400,
+              fontSize: "1.5rem",
+            }}
+          >
+            {t("Home")}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+            }}
+          >
             {t("Welcome back")}, {currentUser?.name}
           </Typography>
         </Box>
         <LanguageSelector />
       </Box>
 
-      {/* View Type Tabs */}
+      {/* View Type Tabs - Google Pay style */}
       <Paper
         elevation={0}
         sx={{
-          borderRadius: theme.shape.borderRadius,
+          borderRadius: 3,
           mb: 2,
           overflow: "hidden",
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
         <Tabs
@@ -551,6 +695,18 @@ const Dashboard = () => {
           textColor="primary"
           indicatorColor="primary"
           aria-label="dashboard view tabs"
+          sx={{
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "0.875rem",
+              minHeight: 48,
+            },
+            "& .MuiTabs-indicator": {
+              height: 3,
+            },
+          }}
         >
           <Tab value="day" label={t("Day")} />
           <Tab value="month" label={t("Month")} />
@@ -558,21 +714,31 @@ const Dashboard = () => {
         </Tabs>
       </Paper>
 
-      {/* Date Navigator */}
-      <Box
+      {/* Date Navigator - Google Pay style */}
+      <Paper
+        elevation={0}
         sx={{
+          p: 2,
+          mb: 3,
+          borderRadius: 3,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 2,
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
         <IconButton
           onClick={handlePrevious}
-          color="primary"
-          sx={{ color: "text.secondary" }}
+          sx={{
+            color: "text.secondary",
+            backgroundColor: alpha(theme.palette.action.active, 0.04),
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.action.active, 0.08),
+            },
+          }}
         >
-          <ChevronLeftIcon />
+          <ChevronLeftRoundedIcon />
         </IconButton>
 
         <Box
@@ -580,33 +746,61 @@ const Dashboard = () => {
             display: "flex",
             alignItems: "center",
             cursor: "pointer",
+            px: 2,
+            py: 1,
+            borderRadius: 20,
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.action.active, 0.04),
+            },
           }}
           onClick={handleOpenDatePicker}
         >
-          <CalendarIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-          <Typography variant="subtitle1" fontWeight="medium">
+          <CalendarTodayRoundedIcon
+            fontSize="small"
+            color="primary"
+            sx={{ mr: 1 }}
+          />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+            }}
+          >
             {getFormattedDate()}
           </Typography>
+          <ArrowDropDownRoundedIcon color="action" />
         </Box>
 
         <IconButton
           onClick={handleNext}
-          color="primary"
-          sx={{ color: "text.secondary" }}
+          sx={{
+            color: "text.secondary",
+            backgroundColor: alpha(theme.palette.action.active, 0.04),
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.action.active, 0.08),
+            },
+          }}
         >
-          <ChevronRightIcon />
+          <ChevronRightRoundedIcon />
         </IconButton>
-      </Box>
+      </Paper>
 
-      {/* Today Button (only show if not on today) */}
+      {/* Today Button (only show if not on today) - Google Pay style */}
       {!isToday() && (
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
           <Button
-            size="small"
-            startIcon={<TodayIcon />}
+            size="medium"
+            startIcon={<TodayRoundedIcon />}
             onClick={handleToday}
             variant="outlined"
-            sx={{ borderRadius: 20, px: 2 }}
+            sx={{
+              borderRadius: 20,
+              px: 3,
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+            }}
           >
             {t("Today")}
           </Button>
@@ -626,7 +820,15 @@ const Dashboard = () => {
             mb: 2,
           }}
         >
-          <Typography variant="h6" component="h2">
+          <Typography
+            variant="h6"
+            component="h2"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "1.125rem",
+            }}
+          >
             {t("Transactions")}
           </Typography>
 
@@ -636,7 +838,7 @@ const Dashboard = () => {
         {renderTransactions()}
       </Box>
 
-      {/* Add Transaction FAB */}
+      {/* Add Transaction FAB - Google Pay style */}
       <Fab
         color="primary"
         aria-label="add transaction"
@@ -644,10 +846,16 @@ const Dashboard = () => {
           position: "fixed",
           bottom: 76,
           right: 16,
+          width: 56,
+          height: 56,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+          "&:hover": {
+            boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
+          },
         }}
         onClick={handleOpenAddModal}
       >
-        <AddIcon />
+        <AddRoundedIcon />
       </Fab>
 
       {/* Add Transaction Modal */}
@@ -669,17 +877,32 @@ const Dashboard = () => {
         viewType={viewType}
       />
 
-      {/* Notification Snackbar */}
+      {/* Notification Snackbar - Google Pay style */}
       <Snackbar
         open={notification.open}
-        autoHideDuration={6000}
+        autoHideDuration={5000}
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ mb: 8 }} // Add margin to avoid bottom nav
       >
         <Alert
           onClose={handleCloseNotification}
           severity={notification.severity}
-          sx={{ width: "100%" }}
+          variant="filled"
+          elevation={6}
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            "& .MuiAlert-message": {
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+            },
+          }}
+          iconMapping={{
+            success: <CheckCircleRoundedIcon fontSize="inherit" />,
+            error: <ErrorOutlineRoundedIcon fontSize="inherit" />,
+            warning: <ErrorOutlineRoundedIcon fontSize="inherit" />,
+            info: <InfoRoundedIcon fontSize="inherit" />,
+          }}
         >
           {notification.message}
         </Alert>

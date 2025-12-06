@@ -1,42 +1,214 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* src/App.css */
+/* Base container styles */
+.app-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Page container with proper padding */
+.page-container {
+  padding: 16px;
+  flex: 1;
+  max-width: 100%;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Google Pay style header */
+.gpay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: var(--background-paper);
+  border-bottom: 1px solid var(--divider);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.gpay-header-title {
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Google Pay style transaction list */
+.gpay-transaction-list {
+  list-style: none;
+  padding: 0;
+}
+
+.gpay-transaction-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.gpay-transaction-item:last-child {
+  border-bottom: none;
+}
+
+.gpay-transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  background-color: var(--background-subtle);
+  color: var(--gpay-blue);
+}
+
+.gpay-transaction-content {
+  flex: 1;
+}
+
+.gpay-transaction-title {
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.gpay-transaction-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.gpay-transaction-amount {
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-weight: 500;
+  text-align: right;
+}
+
+.gpay-amount-expense {
+  color: var(--gpay-red);
+}
+
+.gpay-amount-income {
+  color: var(--gpay-green);
+}
+
+/* Google Pay style balance card */
+.gpay-balance-card {
+  background-color: var(--gpay-blue);
+  color: white;
+  border-radius: var(--border-radius-medium);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.gpay-balance-title {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.gpay-balance-amount {
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+/* Google Pay style action buttons */
+.gpay-action-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin: 24px 0;
+}
+
+.gpay-action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gpay-action-button-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-subtle);
+  color: var(--gpay-blue);
+  margin-bottom: 8px;
+}
+
+.gpay-action-button-label {
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Google Pay style bottom navigation */
+.gpay-bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 64px;
+  background-color: var(--background-paper);
+  border-top: 1px solid var(--divider);
+  position: sticky;
+  bottom: 0;
+}
+
+.gpay-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  justify-content: center;
+}
+
+.gpay-bottom-nav-icon {
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.gpay-bottom-nav-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.gpay-bottom-nav-item.active .gpay-bottom-nav-icon,
+.gpay-bottom-nav-item.active .gpay-bottom-nav-label {
+  color: var(--gpay-blue);
+}
+
+/* Google Pay style FAB */
+.gpay-fab {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background-color: var(--gpay-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* Responsive adjustments */
+@media (min-width: 600px) {
+  .page-container {
+    padding: 24px;
+    max-width: 600px;
+    margin: 0 auto;
   }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }

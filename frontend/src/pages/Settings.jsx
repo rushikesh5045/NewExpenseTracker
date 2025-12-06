@@ -8,7 +8,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListSubheader,
+  ListItemButton,
   TextField,
   Button,
   Dialog,
@@ -19,24 +19,14 @@ import {
   Alert,
   Snackbar,
   Paper,
-  Grid,
   IconButton,
   InputAdornment,
   CircularProgress,
   useTheme,
-  Stack,
+  alpha,
+  Fade,
+  LinearProgress,
 } from "@mui/material";
-import {
-  AccountCircle as AccountIcon,
-  Security as SecurityIcon,
-  DeleteForever as DeleteIcon,
-  FileDownload as ExportIcon,
-  Edit as EditIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Save as SaveIcon,
-  Cancel as CancelIcon,
-} from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -45,6 +35,25 @@ import {
   deleteAccount,
   exportData,
 } from "../services/api";
+
+// Google-style rounded icons
+import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
+import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
+import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
+import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
+import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
+import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
+import GridOnRoundedIcon from "@mui/icons-material/GridOnRounded";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
+import LockRoundedIcon from "@mui/icons-material/LockRounded";
+import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
 
 const Settings = () => {
   const { t } = useTranslation();
@@ -71,12 +80,14 @@ const Settings = () => {
     confirm: false,
   });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   // State for dialogs
   const [dialogs, setDialogs] = useState({
     deleteAccount: false,
     clearData: false,
     exportData: false,
+    changePassword: false,
   });
 
   // State for notifications
@@ -89,6 +100,44 @@ const Settings = () => {
   // State for errors
   const [errors, setErrors] = useState({});
 
+  // Calculate password strength
+  React.useEffect(() => {
+    if (!passwordData.newPassword) {
+      setPasswordStrength(0);
+      return;
+    }
+
+    let score = 0;
+
+    // Length check
+    if (passwordData.newPassword.length >= 8) score += 25;
+
+    // Contains lowercase
+    if (/[a-z]/.test(passwordData.newPassword)) score += 25;
+
+    // Contains uppercase
+    if (/[A-Z]/.test(passwordData.newPassword)) score += 25;
+
+    // Contains number or special char
+    if (/[0-9!@#$%^&*(),.?":{}|<>]/.test(passwordData.newPassword)) score += 25;
+
+    setPasswordStrength(score);
+  }, [passwordData.newPassword]);
+
+  // Get color based on password strength
+  const getPasswordStrengthColor = () => {
+    if (passwordStrength < 50) return theme.palette.error.main;
+    if (passwordStrength < 100) return theme.palette.warning.main;
+    return theme.palette.success.main;
+  };
+
+  // Get text based on password strength
+  const getPasswordStrengthText = () => {
+    if (passwordStrength < 50) return t("Weak");
+    if (passwordStrength < 100) return t("Medium");
+    return t("Strong");
+  };
+
   // Handle profile edit toggle
   const handleEditProfile = () => {
     setProfileEdit(!profileEdit);
@@ -98,6 +147,7 @@ const Settings = () => {
         name: currentUser?.name || "",
         email: currentUser?.email || "",
       });
+      setErrors({});
     }
   };
 
@@ -240,6 +290,9 @@ const Settings = () => {
         newPassword: "",
         confirmPassword: "",
       });
+
+      // Close dialog
+      handleDialog("changePassword", false);
     } catch (error) {
       console.error("Error changing password:", error);
       setNotification({
@@ -259,6 +312,16 @@ const Settings = () => {
       ...dialogs,
       [dialog]: open,
     });
+
+    // Reset errors when opening/closing dialogs
+    if (dialog === "changePassword" && open) {
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setErrors({});
+    }
   };
 
   // Handle export data
@@ -356,375 +419,747 @@ const Settings = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ pb: 7 }}>
+    <Container maxWidth="md" sx={{ pb: 10 }}>
       {/* Header */}
       <Box
         sx={{
           pt: 2,
-          pb: 1,
+          pb: 3,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
         }}
       >
-        <Typography variant="h5" component="h1" fontWeight="medium">
+        <Typography
+          variant="h5"
+          component="h1"
+          sx={{
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 400,
+            fontSize: "1.5rem",
+          }}
+        >
           {t("Settings")}
         </Typography>
       </Box>
 
-      <Grid container spacing={3}>
-        {/* Account Settings Section */}
-        <Grid item xs={12}>
-          <Paper
-            elevation={0}
+      {/* Profile Section - Google Pay style */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          overflow: "hidden",
+          border: "1px solid",
+          borderColor: "divider",
+          mb: 3,
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+          }}
+        >
+          <Typography
+            variant="h6"
             sx={{
-              p: 0,
-              borderRadius: theme.shape.borderRadius,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "1.125rem",
             }}
           >
-            <List
-              subheader={
-                <ListSubheader
-                  component="div"
-                  sx={{ bgcolor: "background.paper" }}
-                >
-                  {t("Account Settings")}
-                </ListSubheader>
-              }
+            {t("Account")}
+          </Typography>
+        </Box>
+
+        {profileEdit ? (
+          // Edit profile form
+          <Box sx={{ p: 3 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+                mb: 2,
+              }}
             >
-              {/* Profile Information */}
-              <ListItem
-                secondaryAction={
-                  profileEdit ? (
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        onClick={handleCancelEdit}
-                        color="inherit"
-                        startIcon={<CancelIcon />}
-                      >
-                        {t("Cancel")}
-                      </Button>
-                      <Button
-                        onClick={handleSaveProfile}
-                        disabled={savingProfile}
-                        variant="contained"
-                        startIcon={
-                          savingProfile ? (
-                            <CircularProgress size={20} />
-                          ) : (
-                            <SaveIcon />
-                          )
-                        }
-                        color="primary"
-                      >
-                        {savingProfile ? t("Saving...") : t("Save")}
-                      </Button>
-                    </Stack>
+              {t("Edit profile")}
+            </Typography>
+
+            <TextField
+              fullWidth
+              margin="normal"
+              id="name"
+              name="name"
+              label={t("Name")}
+              value={profileData.name}
+              onChange={handleProfileChange}
+              error={!!errors.name}
+              helperText={errors.name}
+              disabled={savingProfile}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AccountCircleRoundedIcon
+                      color={errors.name ? "error" : "action"}
+                      fontSize="small"
+                    />
+                  </InputAdornment>
+                ),
+                sx: {
+                  borderRadius: 2,
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  height: 56, // Taller input for better touch targets
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                },
+              }}
+              FormHelperTextProps={{
+                sx: {
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  mt: 0.5,
+                  ml: 1.5,
+                },
+              }}
+              sx={{ mb: 2 }}
+            />
+
+            <TextField
+              fullWidth
+              margin="normal"
+              id="email"
+              name="email"
+              label={t("Email")}
+              type="email"
+              value={profileData.email}
+              onChange={handleProfileChange}
+              error={!!errors.email}
+              helperText={errors.email}
+              disabled={savingProfile}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailRoundedIcon
+                      color={errors.email ? "error" : "action"}
+                      fontSize="small"
+                    />
+                  </InputAdornment>
+                ),
+                sx: {
+                  borderRadius: 2,
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  height: 56, // Taller input for better touch targets
+                },
+              }}
+              InputLabelProps={{
+                sx: {
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                },
+              }}
+              FormHelperTextProps={{
+                sx: {
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  mt: 0.5,
+                  ml: 1.5,
+                },
+              }}
+              sx={{ mb: 3 }}
+            />
+
+            <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              <Button
+                onClick={handleCancelEdit}
+                color="inherit"
+                startIcon={<CloseRoundedIcon />}
+                sx={{
+                  textTransform: "none",
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                  borderRadius: "20px",
+                }}
+              >
+                {t("Cancel")}
+              </Button>
+              <Button
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                variant="contained"
+                disableElevation
+                startIcon={
+                  savingProfile ? (
+                    <CircularProgress size={16} color="inherit" />
                   ) : (
-                    <IconButton edge="end" onClick={handleEditProfile}>
-                      <EditIcon />
-                    </IconButton>
+                    <SaveRoundedIcon />
                   )
                 }
                 sx={{
-                  alignItems: "flex-start",
-                  "& .MuiListItemSecondaryAction-root": {
-                    top: profileEdit ? "16px" : "24px",
+                  textTransform: "none",
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                  borderRadius: "20px",
+                  boxShadow: "none",
+                  "&:hover": {
+                    boxShadow:
+                      "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
                   },
                 }}
               >
-                <ListItemIcon sx={{ mt: 0.5 }}>
-                  <AccountIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Profile Information")}
-                  secondary={
-                    profileEdit ? (
-                      <Box sx={{ mt: 2 }}>
-                        <TextField
-                          fullWidth
-                          margin="dense"
-                          id="name"
-                          name="name"
-                          label={t("Name")}
-                          value={profileData.name}
-                          onChange={handleProfileChange}
-                          error={!!errors.name}
-                          helperText={errors.name}
-                          disabled={savingProfile}
-                          size="small"
-                          sx={{ mb: 2 }}
-                        />
-                        <TextField
-                          fullWidth
-                          margin="dense"
-                          id="email"
-                          name="email"
-                          label={t("Email")}
-                          value={profileData.email}
-                          onChange={handleProfileChange}
-                          error={!!errors.email}
-                          helperText={errors.email}
-                          disabled={savingProfile}
-                          size="small"
-                        />
-                      </Box>
-                    ) : (
-                      <>
-                        <Typography variant="body2" component="div">
-                          {t("Name")}: {currentUser?.name}
-                        </Typography>
-                        <Typography variant="body2" component="div">
-                          {t("Email")}: {currentUser?.email}
-                        </Typography>
-                      </>
-                    )
-                  }
-                />
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Change Password */}
-              <ListItem>
-                <ListItemIcon>
-                  <SecurityIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Change Password")}
-                  secondary={
-                    <Box sx={{ mt: 2 }}>
-                      <TextField
-                        fullWidth
-                        margin="dense"
-                        id="currentPassword"
-                        name="currentPassword"
-                        label={t("Current Password")}
-                        type={showPassword.current ? "text" : "password"}
-                        value={passwordData.currentPassword}
-                        onChange={handlePasswordChange}
-                        error={!!errors.currentPassword}
-                        helperText={errors.currentPassword}
-                        disabled={changingPassword}
-                        size="small"
-                        sx={{ mb: 2 }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() =>
-                                  handleTogglePasswordVisibility("current")
-                                }
-                                edge="end"
-                              >
-                                {showPassword.current ? (
-                                  <VisibilityOffIcon />
-                                ) : (
-                                  <VisibilityIcon />
-                                )}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      <TextField
-                        fullWidth
-                        margin="dense"
-                        id="newPassword"
-                        name="newPassword"
-                        label={t("New Password")}
-                        type={showPassword.new ? "text" : "password"}
-                        value={passwordData.newPassword}
-                        onChange={handlePasswordChange}
-                        error={!!errors.newPassword}
-                        helperText={errors.newPassword}
-                        disabled={changingPassword}
-                        size="small"
-                        sx={{ mb: 2 }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() =>
-                                  handleTogglePasswordVisibility("new")
-                                }
-                                edge="end"
-                              >
-                                {showPassword.new ? (
-                                  <VisibilityOffIcon />
-                                ) : (
-                                  <VisibilityIcon />
-                                )}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      <TextField
-                        fullWidth
-                        margin="dense"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        label={t("Confirm New Password")}
-                        type={showPassword.confirm ? "text" : "password"}
-                        value={passwordData.confirmPassword}
-                        onChange={handlePasswordChange}
-                        error={!!errors.confirmPassword}
-                        helperText={errors.confirmPassword}
-                        disabled={changingPassword}
-                        size="small"
-                        sx={{ mb: 2 }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() =>
-                                  handleTogglePasswordVisibility("confirm")
-                                }
-                                edge="end"
-                              >
-                                {showPassword.confirm ? (
-                                  <VisibilityOffIcon />
-                                ) : (
-                                  <VisibilityIcon />
-                                )}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleChangePassword}
-                        disabled={changingPassword}
-                        startIcon={
-                          changingPassword ? (
-                            <CircularProgress size={20} />
-                          ) : null
-                        }
-                      >
-                        {changingPassword
-                          ? t("Changing...")
-                          : t("Change Password")}
-                      </Button>
-                    </Box>
-                  }
-                />
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Delete Account */}
-              <ListItem>
-                <ListItemIcon>
-                  <DeleteIcon color="error" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Delete Account")}
-                  secondary={t(
-                    "Permanently delete your account and all your data"
-                  )}
-                />
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleDialog("deleteAccount", true)}
-                >
-                  {t("Delete")}
-                </Button>
-              </ListItem>
-            </List>
-          </Paper>
-        </Grid>
-
-        {/* Data Management Section */}
-        <Grid item xs={12}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 0,
-              borderRadius: theme.shape.borderRadius,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-            }}
-          >
-            <List
-              subheader={
-                <ListSubheader
-                  component="div"
-                  sx={{ bgcolor: "background.paper" }}
-                >
-                  {t("Data Management")}
-                </ListSubheader>
+                {savingProfile ? t("Saving...") : t("Save")}
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          // Profile display
+          <List disablePadding>
+            <ListItem
+              secondaryAction={
+                <IconButton edge="end" onClick={handleEditProfile}>
+                  <EditRoundedIcon />
+                </IconButton>
               }
             >
-              {/* Export Data */}
-              <ListItem>
-                <ListItemIcon>
-                  <ExportIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Export Data")}
-                  secondary={t("Download your data in CSV or PDF format")}
-                />
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => handleDialog("exportData", true)}
-                  startIcon={<ExportIcon />}
+              <ListItemIcon>
+                <AccountCircleRoundedIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary={currentUser?.name}
+                secondary={currentUser?.email}
+                primaryTypographyProps={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 400,
+                }}
+                secondaryTypographyProps={{
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                }}
+              />
+            </ListItem>
+
+            <Divider />
+
+            <ListItemButton
+              onClick={() => handleDialog("changePassword", true)}
+            >
+              <ListItemIcon>
+                <SecurityRoundedIcon />
+              </ListItemIcon>
+              <ListItemText
+                primary={t("Password")}
+                secondary={t("Change your password")}
+                primaryTypographyProps={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 400,
+                }}
+                secondaryTypographyProps={{
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                }}
+              />
+              <KeyboardArrowRightRoundedIcon color="action" />
+            </ListItemButton>
+
+            <Divider />
+
+            <ListItemButton onClick={() => handleDialog("deleteAccount", true)}>
+              <ListItemIcon>
+                <DeleteForeverRoundedIcon color="error" />
+              </ListItemIcon>
+              <ListItemText
+                primary={t("Delete account")}
+                secondary={t(
+                  "Permanently delete your account and all your data"
+                )}
+                primaryTypographyProps={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 400,
+                  color: theme.palette.error.main,
+                }}
+                secondaryTypographyProps={{
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                }}
+              />
+              <KeyboardArrowRightRoundedIcon color="action" />
+            </ListItemButton>
+          </List>
+        )}
+      </Paper>
+
+      {/* Data Management Section - Google Pay style */}
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 3,
+          overflow: "hidden",
+          border: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <Box
+          sx={{
+            px: 3,
+            py: 2,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            backgroundColor: alpha(theme.palette.primary.main, 0.04),
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "1.125rem",
+            }}
+          >
+            {t("Data management")}
+          </Typography>
+        </Box>
+
+        <List disablePadding>
+          <ListItemButton onClick={() => handleDialog("exportData", true)}>
+            <ListItemIcon>
+              <FileDownloadRoundedIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={t("Export data")}
+              secondary={t("Download your data in CSV or PDF format")}
+              primaryTypographyProps={{
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 400,
+              }}
+              secondaryTypographyProps={{
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              }}
+            />
+            <KeyboardArrowRightRoundedIcon color="action" />
+          </ListItemButton>
+
+          <Divider />
+
+          <ListItemButton onClick={() => handleDialog("clearData", true)}>
+            <ListItemIcon>
+              <DeleteForeverRoundedIcon />
+            </ListItemIcon>
+            <ListItemText
+              primary={t("Clear all data")}
+              secondary={t("Delete all your transactions and categories")}
+              primaryTypographyProps={{
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 400,
+              }}
+              secondaryTypographyProps={{
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              }}
+            />
+            <KeyboardArrowRightRoundedIcon color="action" />
+          </ListItemButton>
+        </List>
+      </Paper>
+
+      {/* Change Password Dialog - Google Pay style */}
+      <Dialog
+        open={dialogs.changePassword}
+        onClose={() => handleDialog("changePassword", false)}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            borderRadius: 3,
+            maxWidth: "500px",
+            width: "100%",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            px: 3,
+            pt: 3,
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 400,
+            fontSize: "1.25rem",
+          }}
+        >
+          {t("Change password")}
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, pt: 1, pb: 3 }}>
+          <TextField
+            fullWidth
+            margin="normal"
+            id="currentPassword"
+            name="currentPassword"
+            label={t("Current password")}
+            type={showPassword.current ? "text" : "password"}
+            value={passwordData.currentPassword}
+            onChange={handlePasswordChange}
+            error={!!errors.currentPassword}
+            helperText={errors.currentPassword}
+            disabled={changingPassword}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockRoundedIcon
+                    color={errors.currentPassword ? "error" : "action"}
+                    fontSize="small"
+                  />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => handleTogglePasswordVisibility("current")}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPassword.current ? (
+                      <VisibilityOffRoundedIcon />
+                    ) : (
+                      <VisibilityRoundedIcon />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: 2,
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                height: 56,
+              },
+            }}
+            InputLabelProps={{
+              sx: {
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                mt: 0.5,
+                ml: 1.5,
+              },
+            }}
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            fullWidth
+            margin="normal"
+            id="newPassword"
+            name="newPassword"
+            label={t("New password")}
+            type={showPassword.new ? "text" : "password"}
+            value={passwordData.newPassword}
+            onChange={handlePasswordChange}
+            error={!!errors.newPassword}
+            helperText={errors.newPassword}
+            disabled={changingPassword}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockRoundedIcon
+                    color={errors.newPassword ? "error" : "action"}
+                    fontSize="small"
+                  />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => handleTogglePasswordVisibility("new")}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPassword.new ? (
+                      <VisibilityOffRoundedIcon />
+                    ) : (
+                      <VisibilityRoundedIcon />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: 2,
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                height: 56,
+              },
+            }}
+            InputLabelProps={{
+              sx: {
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                mt: 0.5,
+                ml: 1.5,
+              },
+            }}
+            sx={{ mb: 1 }}
+          />
+
+          {/* Password strength indicator */}
+          {passwordData.newPassword && (
+            <Box sx={{ mb: 2, px: 1.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 0.5,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                    color: "text.secondary",
+                  }}
                 >
-                  {t("Export")}
-                </Button>
-              </ListItem>
-
-              <Divider component="li" />
-
-              {/* Clear Data */}
-              <ListItem>
-                <ListItemIcon>
-                  <DeleteIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={t("Clear All Data")}
-                  secondary={t("Delete all your transactions and categories")}
-                />
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleDialog("clearData", true)}
+                  {t("Password strength")}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    color: getPasswordStrengthColor(),
+                    fontWeight: 500,
+                  }}
                 >
-                  {t("Clear")}
-                </Button>
-              </ListItem>
+                  {getPasswordStrengthText()}
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={passwordStrength}
+                sx={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: alpha(getPasswordStrengthColor(), 0.2),
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor: getPasswordStrengthColor(),
+                  },
+                }}
+              />
+            </Box>
+          )}
 
-              <Divider component="li" />
-            </List>
-          </Paper>
-        </Grid>
-      </Grid>
+          <TextField
+            fullWidth
+            margin="normal"
+            id="confirmPassword"
+            name="confirmPassword"
+            label={t("Confirm new password")}
+            type={showPassword.confirm ? "text" : "password"}
+            value={passwordData.confirmPassword}
+            onChange={handlePasswordChange}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword}
+            disabled={changingPassword}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LockRoundedIcon
+                    color={errors.confirmPassword ? "error" : "action"}
+                    fontSize="small"
+                  />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => handleTogglePasswordVisibility("confirm")}
+                    edge="end"
+                    size="small"
+                  >
+                    {showPassword.confirm ? (
+                      <VisibilityOffRoundedIcon />
+                    ) : (
+                      <VisibilityRoundedIcon />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+              sx: {
+                borderRadius: 2,
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                height: 56,
+              },
+            }}
+            InputLabelProps={{
+              sx: {
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              },
+            }}
+            FormHelperTextProps={{
+              sx: {
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                mt: 0.5,
+                ml: 1.5,
+              },
+            }}
+            sx={{ mb: 1 }}
+          />
 
-      {/* Delete Account Dialog */}
+          {/* Password match indicator */}
+          {passwordData.confirmPassword && passwordData.newPassword && (
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2, ml: 1.5 }}>
+              {passwordData.confirmPassword === passwordData.newPassword ? (
+                <>
+                  <CheckCircleRoundedIcon
+                    fontSize="small"
+                    color="success"
+                    sx={{ mr: 0.5, fontSize: "1rem" }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                      color: theme.palette.success.main,
+                    }}
+                  >
+                    {t("Passwords match")}
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <ErrorOutlineRoundedIcon
+                    fontSize="small"
+                    color="error"
+                    sx={{ mr: 0.5, fontSize: "1rem" }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                      color: theme.palette.error.main,
+                    }}
+                  >
+                    {t("Passwords don't match")}
+                  </Typography>
+                </>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+          <Button
+            onClick={() => handleDialog("changePassword", false)}
+            color="inherit"
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+            }}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button
+            onClick={handleChangePassword}
+            disabled={changingPassword}
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow:
+                  "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
+              },
+            }}
+            startIcon={
+              changingPassword ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : null
+            }
+          >
+            {changingPassword ? t("Changing...") : t("Change password")}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Account Dialog - Google Pay style */}
       <Dialog
         open={dialogs.deleteAccount}
         onClose={() => handleDialog("deleteAccount", false)}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            borderRadius: 3,
+            maxWidth: "500px",
+            width: "100%",
+          },
+        }}
       >
-        <DialogTitle>{t("Delete Account")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t(
-              "Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data."
-            )}
-          </DialogContentText>
+        <DialogTitle
+          sx={{
+            px: 3,
+            pt: 3,
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 400,
+            fontSize: "1.25rem",
+            color: theme.palette.error.main,
+          }}
+        >
+          {t("Delete account")}
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, pt: 1, pb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              p: 2,
+              borderRadius: 2,
+              mb: 2,
+              backgroundColor: alpha(theme.palette.error.main, 0.08),
+            }}
+          >
+            <ErrorOutlineRoundedIcon color="error" sx={{ mr: 1.5, mt: 0.5 }} />
+            <Typography
+              variant="body2"
+              sx={{
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                color: theme.palette.text.primary,
+              }}
+            >
+              {t(
+                "This action cannot be undone. Your account and all associated data will be permanently deleted."
+              )}
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              color: theme.palette.text.secondary,
+              mt: 1,
+            }}
+          >
+            {t("Are you sure you want to proceed?")}
+          </Typography>
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
           <Button
             onClick={() => handleDialog("deleteAccount", false)}
-            color="primary"
+            color="inherit"
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+            }}
           >
             {t("Cancel")}
           </Button>
@@ -732,88 +1167,235 @@ const Settings = () => {
             onClick={handleDeleteAccount}
             color="error"
             variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow:
+                  "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
+              },
+            }}
           >
-            {t("Delete")}
+            {t("Delete account")}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Clear Data Dialog */}
+      {/* Clear Data Dialog - Google Pay style */}
       <Dialog
         open={dialogs.clearData}
         onClose={() => handleDialog("clearData", false)}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            borderRadius: 3,
+            maxWidth: "500px",
+            width: "100%",
+          },
+        }}
       >
-        <DialogTitle>{t("Clear All Data")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t(
-              "Are you sure you want to clear all your data? This action cannot be undone and will delete all your transactions and categories."
-            )}
-          </DialogContentText>
+        <DialogTitle
+          sx={{
+            px: 3,
+            pt: 3,
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 400,
+            fontSize: "1.25rem",
+          }}
+        >
+          {t("Clear all data")}
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, pt: 1, pb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              p: 2,
+              borderRadius: 2,
+              mb: 2,
+              backgroundColor: alpha(theme.palette.warning.main, 0.08),
+            }}
+          >
+            <ErrorOutlineRoundedIcon
+              sx={{ mr: 1.5, mt: 0.5, color: theme.palette.warning.main }}
+            />
+            <Typography
+              variant="body2"
+              sx={{
+                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                color: theme.palette.text.primary,
+              }}
+            >
+              {t(
+                "This action will delete all your transactions and categories. Your account will remain active."
+              )}
+            </Typography>
+          </Box>
+
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              color: theme.palette.text.secondary,
+              mt: 1,
+            }}
+          >
+            {t("Are you sure you want to clear all data?")}
+          </Typography>
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
           <Button
             onClick={() => handleDialog("clearData", false)}
-            color="primary"
+            color="inherit"
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+            }}
           >
             {t("Cancel")}
           </Button>
-          <Button onClick={handleClearData} color="error" variant="contained">
-            {t("Clear")}
+          <Button
+            onClick={handleClearData}
+            color="warning"
+            variant="contained"
+            disableElevation
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow:
+                  "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
+              },
+            }}
+          >
+            {t("Clear data")}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Export Data Dialog */}
+      {/* Export Data Dialog - Google Pay style */}
       <Dialog
         open={dialogs.exportData}
         onClose={() => handleDialog("exportData", false)}
+        PaperProps={{
+          elevation: 2,
+          sx: {
+            borderRadius: 3,
+            maxWidth: "500px",
+            width: "100%",
+          },
+        }}
       >
-        <DialogTitle>{t("Export Data")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t("Choose a format to export your data:")}
-          </DialogContentText>
-          <Box
-            sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}
+        <DialogTitle
+          sx={{
+            px: 3,
+            pt: 3,
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 400,
+            fontSize: "1.25rem",
+          }}
+        >
+          {t("Export data")}
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 3, pt: 1, pb: 3 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+              color: theme.palette.text.secondary,
+              mb: 3,
+            }}
           >
+            {t("Choose a format to export your data:")}
+          </Typography>
+
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
             <Button
-              variant="outlined"
               onClick={() => handleExport("CSV")}
-              startIcon={<ExportIcon />}
+              variant="outlined"
+              startIcon={<GridOnRoundedIcon />}
+              sx={{
+                textTransform: "none",
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+                borderRadius: "20px",
+                px: 3,
+              }}
             >
               CSV
             </Button>
+
             <Button
-              variant="outlined"
               onClick={() => handleExport("PDF")}
-              startIcon={<ExportIcon />}
+              variant="outlined"
+              startIcon={<PictureAsPdfRoundedIcon />}
+              sx={{
+                textTransform: "none",
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+                borderRadius: "20px",
+                px: 3,
+              }}
             >
               PDF
             </Button>
           </Box>
         </DialogContent>
-        <DialogActions>
+
+        <DialogActions sx={{ px: 3, pb: 3, pt: 0 }}>
           <Button
             onClick={() => handleDialog("exportData", false)}
-            color="primary"
+            color="inherit"
+            sx={{
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              borderRadius: "20px",
+            }}
           >
             {t("Cancel")}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Notification Snackbar */}
+      {/* Notification Snackbar - Google Pay style */}
       <Snackbar
         open={notification.open}
-        autoHideDuration={6000}
+        autoHideDuration={5000}
         onClose={handleCloseNotification}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ mb: 8 }} // Add margin to avoid bottom nav
       >
         <Alert
           onClose={handleCloseNotification}
           severity={notification.severity}
-          sx={{ width: "100%" }}
+          variant="filled"
+          elevation={6}
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+            "& .MuiAlert-message": {
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+            },
+          }}
+          iconMapping={{
+            success: <CheckCircleRoundedIcon fontSize="inherit" />,
+            error: <ErrorOutlineRoundedIcon fontSize="inherit" />,
+            warning: <ErrorOutlineRoundedIcon fontSize="inherit" />,
+            info: <InfoRoundedIcon fontSize="inherit" />,
+          }}
         >
           {notification.message}
         </Alert>

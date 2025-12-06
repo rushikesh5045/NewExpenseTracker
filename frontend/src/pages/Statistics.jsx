@@ -1,4 +1,3 @@
-// src/pages/Statistics.jsx
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -21,17 +20,12 @@ import {
   MenuItem,
   ToggleButtonGroup,
   ToggleButton,
+  Chip,
+  alpha,
+  Fade,
+  useMediaQuery,
+  Button,
 } from "@mui/material";
-import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  CalendarToday as CalendarIcon,
-  TrendingUp as TrendingUpIcon,
-  PieChart as PieChartIcon,
-  BarChart as BarChartIcon,
-  FilterList as FilterIcon,
-  Today as TodayIcon,
-} from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -57,6 +51,21 @@ import {
 } from "chart.js";
 import { Pie, Bar, Line } from "react-chartjs-2";
 
+// Google-style rounded icons
+import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
+import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
+import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import PieChartRoundedIcon from "@mui/icons-material/PieChartRounded";
+import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
+import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
+import TodayRoundedIcon from "@mui/icons-material/TodayRounded";
+import ArrowDropDownRoundedIcon from "@mui/icons-material/ArrowDropDownRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
+import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
+
 // Register ChartJS components
 ChartJS.register(
   ArcElement,
@@ -74,6 +83,7 @@ const Statistics = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // State for view type (day, month, year)
   const [viewType, setViewType] = useState("month");
@@ -101,6 +111,7 @@ const Statistics = () => {
   // State for filters
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Handle tab change
   const handleViewChange = (event, newValue) => {
@@ -183,6 +194,11 @@ const Statistics = () => {
     }
   };
 
+  // Toggle filters visibility
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+  };
+
   // Check if current date is today
   const isToday = () => {
     const today = new Date();
@@ -191,6 +207,16 @@ const Statistics = () => {
       currentDate.getMonth() === today.getMonth() &&
       currentDate.getFullYear() === today.getFullYear()
     );
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat(localStorage.getItem("language") || "en", {
+      style: "currency",
+      currency: "INR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   // Fetch data
@@ -286,7 +312,10 @@ const Statistics = () => {
             theme.palette.success.main,
             theme.palette.error.main,
           ],
-          borderColor: [theme.palette.success.main, theme.palette.error.main],
+          borderColor: [
+            alpha(theme.palette.success.main, 0.8),
+            alpha(theme.palette.error.main, 0.8),
+          ],
           borderWidth: 1,
         },
       ],
@@ -335,7 +364,7 @@ const Statistics = () => {
         {
           data,
           backgroundColor,
-          borderColor: backgroundColor,
+          borderColor: backgroundColor.map((color) => alpha(color, 0.8)),
           borderWidth: 1,
         },
       ],
@@ -433,17 +462,19 @@ const Statistics = () => {
           label: t("Income"),
           data: incomeData,
           borderColor: theme.palette.success.main,
-          backgroundColor: theme.palette.success.main + "40", // 40 = 25% opacity
+          backgroundColor: alpha(theme.palette.success.main, 0.2),
           fill: true,
           tension: 0.4,
+          borderWidth: 2,
         },
         {
           label: t("Expense"),
           data: expenseData,
           borderColor: theme.palette.error.main,
-          backgroundColor: theme.palette.error.main + "40", // 40 = 25% opacity
+          backgroundColor: alpha(theme.palette.error.main, 0.2),
           fill: true,
           tension: 0.4,
+          borderWidth: 2,
         },
       ],
     };
@@ -485,9 +516,10 @@ const Statistics = () => {
         {
           label: t("Expense Amount"),
           data,
-          backgroundColor: theme.palette.error.main,
+          backgroundColor: alpha(theme.palette.error.main, 0.8),
           borderColor: theme.palette.error.main,
           borderWidth: 1,
+          borderRadius: 4,
         },
       ],
     };
@@ -499,15 +531,46 @@ const Statistics = () => {
     return ((summary.income - summary.expense) / summary.income) * 100;
   };
 
-  // Chart options
+  // Chart options - Google Pay style
   const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "bottom",
+        labels: {
+          font: {
+            family: '"Google Sans", "Roboto", sans-serif',
+            size: 12,
+          },
+          usePointStyle: true,
+          padding: 20,
+        },
+      },
+      tooltip: {
+        titleFont: {
+          family: '"Google Sans", "Roboto", sans-serif',
+          size: 14,
+        },
+        bodyFont: {
+          family: '"Google Sans Text", "Roboto", sans-serif',
+          size: 13,
+        },
+        callbacks: {
+          label: function (context) {
+            let label = context.label || "";
+            if (label) {
+              label += ": ";
+            }
+            if (context.parsed !== undefined) {
+              label += formatCurrency(context.parsed);
+            }
+            return label;
+          },
+        },
       },
     },
+    cutout: "60%", // Donut style like Google Pay
   };
 
   const lineChartOptions = {
@@ -516,15 +579,77 @@ const Statistics = () => {
     plugins: {
       legend: {
         position: "top",
+        align: "start",
+        labels: {
+          font: {
+            family: '"Google Sans", "Roboto", sans-serif',
+            size: 12,
+          },
+          usePointStyle: true,
+          padding: 20,
+        },
       },
-      title: {
-        display: true,
-        text: t("Income vs Expense Trend"),
+      tooltip: {
+        titleFont: {
+          family: '"Google Sans", "Roboto", sans-serif',
+          size: 14,
+        },
+        bodyFont: {
+          family: '"Google Sans Text", "Roboto", sans-serif',
+          size: 13,
+        },
+        callbacks: {
+          label: function (context) {
+            let label = context.dataset.label || "";
+            if (label) {
+              label += ": ";
+            }
+            if (context.parsed.y !== undefined) {
+              label += formatCurrency(context.parsed.y);
+            }
+            return label;
+          },
+        },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          font: {
+            family: '"Google Sans Text", "Roboto", sans-serif',
+          },
+          callback: function (value) {
+            if (value >= 1000) {
+              return (value / 1000).toFixed(0) + "k";
+            }
+            return value;
+          },
+        },
+        grid: {
+          drawBorder: false,
+          color: alpha(theme.palette.text.secondary, 0.1),
+        },
+      },
+      x: {
+        ticks: {
+          font: {
+            family: '"Google Sans Text", "Roboto", sans-serif',
+          },
+          maxRotation: 0,
+        },
+        grid: {
+          display: false,
+        },
+      },
+    },
+    elements: {
+      point: {
+        radius: 3,
+        hoverRadius: 5,
+      },
+      line: {
+        tension: 0.3,
       },
     },
   };
@@ -534,22 +659,69 @@ const Statistics = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "top",
+        display: false,
       },
-      title: {
-        display: true,
-        text: t("Top Expense Categories"),
+      tooltip: {
+        titleFont: {
+          family: '"Google Sans", "Roboto", sans-serif',
+          size: 14,
+        },
+        bodyFont: {
+          family: '"Google Sans Text", "Roboto", sans-serif',
+          size: 13,
+        },
+        callbacks: {
+          label: function (context) {
+            let label = context.dataset.label || "";
+            if (label) {
+              label += ": ";
+            }
+            if (context.parsed.y !== undefined) {
+              label += formatCurrency(context.parsed.y);
+            }
+            return label;
+          },
+        },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          font: {
+            family: '"Google Sans Text", "Roboto", sans-serif',
+          },
+          callback: function (value) {
+            if (value >= 1000) {
+              return (value / 1000).toFixed(0) + "k";
+            }
+            return value;
+          },
+        },
+        grid: {
+          drawBorder: false,
+          color: alpha(theme.palette.text.secondary, 0.1),
+        },
+      },
+      x: {
+        ticks: {
+          font: {
+            family: '"Google Sans Text", "Roboto", sans-serif',
+          },
+          maxRotation: 45,
+          minRotation: 45,
+        },
+        grid: {
+          display: false,
+        },
       },
     },
+    barThickness: 30,
+    borderRadius: 4,
   };
 
   return (
-    <Container maxWidth="false" sx={{ pb: 7 }}>
+    <Container maxWidth="lg" sx={{ pb: 10 }}>
       {/* Header with Language Selector */}
       <Box
         sx={{
@@ -561,23 +733,39 @@ const Statistics = () => {
         }}
       >
         <Box>
-          <Typography variant="h5" component="h1" fontWeight="medium">
-            {t("Statistics")}
+          <Typography
+            variant="h5"
+            component="h1"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 400,
+              fontSize: "1.5rem",
+            }}
+          >
+            {t("Analytics")}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+            }}
+          >
             {t("Financial insights")}
           </Typography>
         </Box>
         <LanguageSelector />
       </Box>
 
-      {/* View Type Tabs */}
+      {/* View Type Tabs - Google Pay style */}
       <Paper
         elevation={0}
         sx={{
-          borderRadius: theme.shape.borderRadius,
+          borderRadius: 3,
           mb: 2,
           overflow: "hidden",
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
         <Tabs
@@ -587,6 +775,18 @@ const Statistics = () => {
           textColor="primary"
           indicatorColor="primary"
           aria-label="statistics view tabs"
+          sx={{
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "0.875rem",
+              minHeight: 48,
+            },
+            "& .MuiTabs-indicator": {
+              height: 3,
+            },
+          }}
         >
           <Tab value="day" label={t("Day")} />
           <Tab value="month" label={t("Month")} />
@@ -594,21 +794,31 @@ const Statistics = () => {
         </Tabs>
       </Paper>
 
-      {/* Date Navigator */}
-      <Box
+      {/* Date Navigator - Google Pay style */}
+      <Paper
+        elevation={0}
         sx={{
+          p: 2,
+          mb: 3,
+          borderRadius: 3,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          mb: 2,
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
         <IconButton
           onClick={handlePrevious}
-          color="primary"
-          sx={{ color: "text.secondary" }}
+          sx={{
+            color: "text.secondary",
+            backgroundColor: alpha(theme.palette.action.active, 0.04),
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.action.active, 0.08),
+            },
+          }}
         >
-          <ChevronLeftIcon />
+          <ChevronLeftRoundedIcon />
         </IconButton>
 
         <Box
@@ -616,191 +826,452 @@ const Statistics = () => {
             display: "flex",
             alignItems: "center",
             cursor: "pointer",
+            px: 2,
+            py: 1,
+            borderRadius: 20,
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.action.active, 0.04),
+            },
           }}
           onClick={handleOpenDatePicker}
         >
-          <CalendarIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-          <Typography variant="subtitle1" fontWeight="medium">
+          <CalendarTodayRoundedIcon
+            fontSize="small"
+            color="primary"
+            sx={{ mr: 1 }}
+          />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+            }}
+          >
             {getFormattedDate()}
           </Typography>
+          <ArrowDropDownRoundedIcon color="action" />
         </Box>
 
         <IconButton
           onClick={handleNext}
-          color="primary"
-          sx={{ color: "text.secondary" }}
+          sx={{
+            color: "text.secondary",
+            backgroundColor: alpha(theme.palette.action.active, 0.04),
+            "&:hover": {
+              backgroundColor: alpha(theme.palette.action.active, 0.08),
+            },
+          }}
         >
-          <ChevronRightIcon />
+          <ChevronRightRoundedIcon />
         </IconButton>
-      </Box>
+      </Paper>
 
-      {/* Today Button (only show if not on today) */}
-      {!isToday() && (
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+      {/* Today Button and Filters Toggle - Google Pay style */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mb: 2,
+          gap: 2,
+        }}
+      >
+        {!isToday() && (
           <Button
-            size="small"
-            startIcon={<TodayIcon />}
+            size="medium"
+            startIcon={<TodayRoundedIcon />}
             onClick={handleToday}
             variant="outlined"
-            sx={{ borderRadius: 20, px: 2 }}
+            sx={{
+              borderRadius: 20,
+              px: 2,
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+            }}
           >
             {t("Today")}
           </Button>
-        </Box>
-      )}
+        )}
 
-      {/* Filters */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 2,
-          mb: 3,
-          borderRadius: theme.shape.borderRadius,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Typography
-          variant="subtitle2"
-          gutterBottom
-          sx={{ display: "flex", alignItems: "center" }}
-        >
-          <FilterIcon fontSize="small" sx={{ mr: 1 }} />
-          {t("Filters")}
-        </Typography>
-
-        <Box
+        <Button
+          size="medium"
+          startIcon={<TuneRoundedIcon />}
+          onClick={toggleFilters}
+          variant="outlined"
           sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 2,
-            mt: 1,
+            borderRadius: 20,
+            px: 2,
+            ml: "auto",
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 500,
           }}
         >
-          {/* Transaction Type Filter */}
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {t("Transaction Type")}
-            </Typography>
-            <ToggleButtonGroup
-              value={typeFilter}
-              exclusive
-              onChange={handleTypeFilterChange}
-              aria-label="transaction type filter"
-              size="small"
-              fullWidth
-            >
-              <ToggleButton value="all" aria-label="all transactions">
-                {t("All")}
-              </ToggleButton>
-              <ToggleButton value="income" aria-label="income only">
-                {t("Income")}
-              </ToggleButton>
-              <ToggleButton value="expense" aria-label="expenses only">
-                {t("Expense")}
-              </ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
+          {t("Filters")}
+        </Button>
+      </Box>
 
-          {/* Category Filter */}
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {t("Category")}
-            </Typography>
-            <FormControl fullWidth size="small">
-              <Select
-                value={categoryFilter}
-                onChange={handleCategoryFilterChange}
-                displayEmpty
+      {/* Filters - Google Pay style */}
+      <Fade in={showFilters}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            display: showFilters ? "block" : "none",
+          }}
+        >
+          <Typography
+            variant="subtitle1"
+            gutterBottom
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              mb: 2,
+            }}
+          >
+            <FilterListRoundedIcon fontSize="small" sx={{ mr: 1 }} />
+            {t("Filters")}
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              gap: 2,
+            }}
+          >
+            {/* Transaction Type Filter */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                gutterBottom
+                sx={{
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  mb: 1,
+                }}
               >
-                <MenuItem value="all">{t("All Categories")}</MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={category._id} value={category._id}>
-                    {category.name}
+                {t("Transaction Type")}
+              </Typography>
+              <ToggleButtonGroup
+                value={typeFilter}
+                exclusive
+                onChange={handleTypeFilterChange}
+                aria-label="transaction type filter"
+                size="small"
+                fullWidth
+                sx={{
+                  "& .MuiToggleButtonGroup-grouped": {
+                    borderRadius: "20px !important",
+                    mx: 0,
+                    border: `1px solid ${theme.palette.divider}`,
+                    "&.Mui-selected": {
+                      boxShadow: "none",
+                    },
+                    textTransform: "none",
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  },
+                }}
+              >
+                <ToggleButton value="all" aria-label="all transactions">
+                  {t("All")}
+                </ToggleButton>
+                <ToggleButton
+                  value="income"
+                  aria-label="income only"
+                  sx={{
+                    "&.Mui-selected": {
+                      color: theme.palette.success.main,
+                      backgroundColor: alpha(theme.palette.success.main, 0.08),
+                    },
+                  }}
+                >
+                  {t("Income")}
+                </ToggleButton>
+                <ToggleButton
+                  value="expense"
+                  aria-label="expenses only"
+                  sx={{
+                    "&.Mui-selected": {
+                      color: theme.palette.error.main,
+                      backgroundColor: alpha(theme.palette.error.main, 0.08),
+                    },
+                  }}
+                >
+                  {t("Expense")}
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            {/* Category Filter */}
+            <Box sx={{ flex: 1 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                gutterBottom
+                sx={{
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  mb: 1,
+                }}
+              >
+                {t("Category")}
+              </Typography>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={categoryFilter}
+                  onChange={handleCategoryFilterChange}
+                  displayEmpty
+                  sx={{
+                    borderRadius: 20,
+                    height: 40,
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    "& .MuiSelect-select": {
+                      display: "flex",
+                      alignItems: "center",
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        borderRadius: 2,
+                        mt: 0.5,
+                        maxHeight: 300,
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem
+                    value="all"
+                    sx={{
+                      fontFamily: '"Google Sans", "Roboto", sans-serif',
+                      borderRadius: 1,
+                    }}
+                  >
+                    {t("All Categories")}
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  {categories.map((category) => (
+                    <MenuItem
+                      key={category._id}
+                      value={category._id}
+                      sx={{
+                        fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        borderRadius: 1,
+                      }}
+                    >
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
-        </Box>
-      </Paper>
+        </Paper>
+      </Fade>
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress />
+          <CircularProgress size={40} thickness={4} />
         </Box>
       ) : (
         <>
-          {/* Summary Cards */}
+          {/* Summary Cards - Google Pay style */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={4}>
+            {/* Income Card */}
+            <Grid item xs={12} sm={4}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2,
+                  p: 3,
                   height: "100%",
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "4px",
+                    backgroundColor: theme.palette.success.main,
+                  },
                 }}
               >
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.main,
+                    mb: 1,
+                  }}
+                >
+                  <TrendingUpRoundedIcon />
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{
+                    fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  }}
+                >
                   {t("Income")}
                 </Typography>
                 <Typography
                   variant="h6"
                   color="success.main"
-                  fontWeight="medium"
+                  sx={{
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
                 >
-                  ₹{summary.income.toLocaleString()}
+                  {formatCurrency(summary.income)}
                 </Typography>
               </Paper>
             </Grid>
 
-            <Grid item xs={4}>
+            {/* Expense Card */}
+            <Grid item xs={12} sm={4}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2,
+                  p: 3,
                   height: "100%",
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "4px",
+                    backgroundColor: theme.palette.error.main,
+                  },
                 }}
               >
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: alpha(theme.palette.error.main, 0.1),
+                    color: theme.palette.error.main,
+                    mb: 1,
+                  }}
+                >
+                  <AccountBalanceWalletRoundedIcon />
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{
+                    fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  }}
+                >
                   {t("Expense")}
                 </Typography>
-                <Typography variant="h6" color="error.main" fontWeight="medium">
-                  ₹{summary.expense.toLocaleString()}
+                <Typography
+                  variant="h6"
+                  color="error.main"
+                  sx={{
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
+                >
+                  {formatCurrency(summary.expense)}
                 </Typography>
               </Paper>
             </Grid>
 
-            <Grid item xs={4}>
+            {/* Savings Rate Card */}
+            <Grid item xs={12} sm={4}>
               <Paper
                 elevation={0}
                 sx={{
-                  p: 2,
+                  p: 3,
                   height: "100%",
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "4px",
+                    backgroundColor:
+                      calculateSavingsRate() >= 0
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
+                  },
                 }}
               >
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor:
+                      calculateSavingsRate() >= 0
+                        ? alpha(theme.palette.success.main, 0.1)
+                        : alpha(theme.palette.error.main, 0.1),
+                    color:
+                      calculateSavingsRate() >= 0
+                        ? theme.palette.success.main
+                        : theme.palette.error.main,
+                    mb: 1,
+                  }}
+                >
+                  <SavingsRoundedIcon />
+                </Box>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  gutterBottom
+                  sx={{
+                    fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  }}
+                >
                   {t("Savings Rate")}
                 </Typography>
                 <Typography
@@ -808,7 +1279,10 @@ const Statistics = () => {
                   color={
                     calculateSavingsRate() >= 0 ? "success.main" : "error.main"
                   }
-                  fontWeight="medium"
+                  sx={{
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
                 >
                   {calculateSavingsRate().toFixed(0)}%
                 </Typography>
@@ -816,26 +1290,47 @@ const Statistics = () => {
             </Grid>
           </Grid>
 
-          {/* Charts */}
+          {/* Charts - Google Pay style */}
           <Grid container spacing={3}>
             {/* Income vs Expense Pie Chart */}
             <Grid item xs={12} md={6}>
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
                   height: "100%",
+                  overflow: "hidden",
                 }}
               >
                 <CardHeader
                   title={t("Income vs Expense")}
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                  avatar={<PieChartIcon color="primary" />}
+                  titleTypographyProps={{
+                    variant: "subtitle1",
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
+                  avatar={
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      <PieChartRoundedIcon fontSize="small" />
+                    </Box>
+                  }
+                  sx={{ px: 3, py: 2 }}
                 />
                 <Divider />
-                <CardContent sx={{ height: 300 }}>
+                <CardContent sx={{ height: 300, p: 3 }}>
                   {summary.income === 0 && summary.expense === 0 ? (
                     <Box
                       sx={{
@@ -843,9 +1338,34 @@ const Statistics = () => {
                         height: "100%",
                         alignItems: "center",
                         justifyContent: "center",
+                        flexDirection: "column",
                       }}
                     >
-                      <Typography variant="body2" color="text.secondary">
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: alpha(
+                            theme.palette.action.active,
+                            0.08
+                          ),
+                          color: theme.palette.text.secondary,
+                          mb: 2,
+                        }}
+                      >
+                        <InsightsRoundedIcon />
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        }}
+                      >
                         {t("No data available")}
                       </Typography>
                     </Box>
@@ -864,19 +1384,40 @@ const Statistics = () => {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
                   height: "100%",
+                  overflow: "hidden",
                 }}
               >
                 <CardHeader
                   title={t("Expense by Category")}
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                  avatar={<PieChartIcon color="primary" />}
+                  titleTypographyProps={{
+                    variant: "subtitle1",
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
+                  avatar={
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      <PieChartRoundedIcon fontSize="small" />
+                    </Box>
+                  }
+                  sx={{ px: 3, py: 2 }}
                 />
                 <Divider />
-                <CardContent sx={{ height: 300 }}>
+                <CardContent sx={{ height: 300, p: 3 }}>
                   {summary.expense === 0 ? (
                     <Box
                       sx={{
@@ -884,9 +1425,34 @@ const Statistics = () => {
                         height: "100%",
                         alignItems: "center",
                         justifyContent: "center",
+                        flexDirection: "column",
                       }}
                     >
-                      <Typography variant="body2" color="text.secondary">
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: alpha(
+                            theme.palette.action.active,
+                            0.08
+                          ),
+                          color: theme.palette.text.secondary,
+                          mb: 2,
+                        }}
+                      >
+                        <InsightsRoundedIcon />
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        }}
+                      >
                         {t("No expense data available")}
                       </Typography>
                     </Box>
@@ -905,18 +1471,39 @@ const Statistics = () => {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
+                  overflow: "hidden",
                 }}
               >
                 <CardHeader
                   title={t("Income and Expense Trend")}
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                  avatar={<TrendingUpIcon color="primary" />}
+                  titleTypographyProps={{
+                    variant: "subtitle1",
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
+                  avatar={
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      <TrendingUpRoundedIcon fontSize="small" />
+                    </Box>
+                  }
+                  sx={{ px: 3, py: 2 }}
                 />
                 <Divider />
-                <CardContent sx={{ height: 300 }}>
+                <CardContent sx={{ height: 350, p: 3 }}>
                   {transactions.length === 0 ? (
                     <Box
                       sx={{
@@ -924,9 +1511,34 @@ const Statistics = () => {
                         height: "100%",
                         alignItems: "center",
                         justifyContent: "center",
+                        flexDirection: "column",
                       }}
                     >
-                      <Typography variant="body2" color="text.secondary">
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: alpha(
+                            theme.palette.action.active,
+                            0.08
+                          ),
+                          color: theme.palette.text.secondary,
+                          mb: 2,
+                        }}
+                      >
+                        <InsightsRoundedIcon />
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        }}
+                      >
                         {t("No trend data available")}
                       </Typography>
                     </Box>
@@ -945,18 +1557,39 @@ const Statistics = () => {
               <Card
                 elevation={0}
                 sx={{
-                  borderRadius: theme.shape.borderRadius,
+                  borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
+                  overflow: "hidden",
                 }}
               >
                 <CardHeader
                   title={t("Top Expense Categories")}
-                  titleTypographyProps={{ variant: "subtitle1" }}
-                  avatar={<BarChartIcon color="primary" />}
+                  titleTypographyProps={{
+                    variant: "subtitle1",
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                  }}
+                  avatar={
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                        color: theme.palette.primary.main,
+                      }}
+                    >
+                      <BarChartRoundedIcon fontSize="small" />
+                    </Box>
+                  }
+                  sx={{ px: 3, py: 2 }}
                 />
                 <Divider />
-                <CardContent sx={{ height: 300 }}>
+                <CardContent sx={{ height: 350, p: 3 }}>
                   {summary.expense === 0 ? (
                     <Box
                       sx={{
@@ -964,9 +1597,34 @@ const Statistics = () => {
                         height: "100%",
                         alignItems: "center",
                         justifyContent: "center",
+                        flexDirection: "column",
                       }}
                     >
-                      <Typography variant="body2" color="text.secondary">
+                      <Box
+                        sx={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: alpha(
+                            theme.palette.action.active,
+                            0.08
+                          ),
+                          color: theme.palette.text.secondary,
+                          mb: 2,
+                        }}
+                      >
+                        <InsightsRoundedIcon />
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        }}
+                      >
                         {t("No expense data available")}
                       </Typography>
                     </Box>

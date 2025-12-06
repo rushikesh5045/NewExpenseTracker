@@ -1,168 +1,202 @@
 import { createTheme } from "@mui/material/styles";
 
-// Material You color system with subtle avatar colors
 export const createAppTheme = (mode) => {
+  // Google Pay color system
+  const isDark = mode === "dark";
+
   return createTheme({
     palette: {
       mode,
       primary: {
-        main: "#006495", // Primary color
-        light: "#5092c3",
-        dark: "#003a6a",
+        main: "#1a73e8", // Google Pay blue
+        light: "#4285f4",
+        dark: "#0d47a1",
         contrastText: "#ffffff",
       },
       secondary: {
-        main: "#9c27b0", // Secondary color
-        light: "#d05ce3",
-        dark: "#6a0080",
+        main: "#202124", // Dark gray for secondary actions
+        light: "#5f6368",
+        dark: "#000000",
         contrastText: "#ffffff",
       },
       error: {
-        main: "#b3261e", // Error color
-        light: "#f2b8b5",
-        dark: "#8c1d18",
+        main: "#d93025", // Google Pay error red
+        light: "#f28b82",
+        dark: "#b31412",
+      },
+      warning: {
+        main: "#f29900", // Google Pay warning
+        light: "#fdd663",
+        dark: "#e37400",
+      },
+      info: {
+        main: "#1a73e8", // Google Pay blue
+        light: "#4285f4",
+        dark: "#0d47a1",
       },
       success: {
-        main: "#4CAF50", // Success color for income
-        light: "#80e27e",
-        dark: "#087f23",
+        main: "#1e8e3e", // Google Pay green
+        light: "#34a853",
+        dark: "#137333",
       },
       background: {
-        default: "#f8f9fa",
-        paper: "#ffffff",
+        default: isDark ? "#202124" : "#f8f9fa",
+        paper: isDark ? "#303134" : "#ffffff",
+        subtle: isDark ? "#28292c" : "#f1f3f4",
       },
       text: {
-        primary: "#1c1b1f",
-        secondary: "#49454f",
-        disabled: "#79747e",
+        primary: isDark ? "#e8eaed" : "#202124",
+        secondary: isDark ? "#9aa0a6" : "#5f6368",
+        disabled: isDark ? "#80868b" : "#80868b",
       },
-      // Subtle avatar colors palette
-      avatar: {
-        income: "#e6f4ea", // Light green background
-        incomeText: "#1e8e3e", // Dark green text
-        expense: "#fce8e6", // Light red background
-        expenseText: "#c5221f", // Dark red text
-        salary: "#e8f0fe", // Light blue background
-        salaryText: "#1a73e8", // Blue text
-        food: "#fef7e0", // Light yellow background
-        foodText: "#e37400", // Orange text
-        transport: "#e6f4ea", // Light green background
-        transportText: "#1e8e3e", // Dark green text
-        default: "#f1f3f4", // Light gray background
-        defaultText: "#5f6368", // Dark gray text
+      divider: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.12)",
+      // Google Pay specific colors
+      gpay: {
+        blue: "#1a73e8",
+        green: "#1e8e3e",
+        yellow: "#f9ab00",
+        red: "#d93025",
+        teal: "#129eaf",
+        purple: "#9334e6",
+        // Transaction type colors
+        income: "#1e8e3e",
+        expense: "#d93025",
+        transfer: "#1a73e8",
+        // Background colors for category icons
+        iconBg: {
+          blue: "rgba(26, 115, 232, 0.08)",
+          green: "rgba(30, 142, 62, 0.08)",
+          yellow: "rgba(249, 171, 0, 0.08)",
+          red: "rgba(217, 48, 37, 0.08)",
+          teal: "rgba(18, 158, 175, 0.08)",
+          purple: "rgba(147, 52, 230, 0.08)",
+        },
       },
-    },
-    shape: {
-      borderRadius: 4, // Reduced border radius as requested
     },
     typography: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Google Sans Text", "Roboto", "Arial", sans-serif',
       h1: {
-        fontSize: "2.5rem",
-        fontWeight: 400,
-        lineHeight: 1.2,
-      },
-      h2: {
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
         fontSize: "2rem",
         fontWeight: 400,
-        lineHeight: 1.2,
+        letterSpacing: "-0.0125em",
       },
-      h3: {
+      h2: {
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
         fontSize: "1.75rem",
         fontWeight: 400,
-        lineHeight: 1.2,
+        letterSpacing: "-0.0083em",
       },
-      h4: {
+      h3: {
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
         fontSize: "1.5rem",
         fontWeight: 400,
-        lineHeight: 1.2,
+        letterSpacing: "0em",
       },
-      h5: {
+      h4: {
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
         fontSize: "1.25rem",
         fontWeight: 500,
-        lineHeight: 1.2,
+        letterSpacing: "0.0025em",
+      },
+      h5: {
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+        fontSize: "1.125rem",
+        fontWeight: 500,
+        letterSpacing: "0em",
       },
       h6: {
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
         fontSize: "1rem",
         fontWeight: 500,
-        lineHeight: 1.2,
-      },
-      body1: {
-        fontSize: "1rem",
-        lineHeight: 1.5,
-      },
-      body2: {
-        fontSize: "0.875rem",
-        lineHeight: 1.5,
-      },
-      button: {
-        textTransform: "none", // Material You uses sentence case for buttons
-        fontWeight: 500,
+        letterSpacing: "0.0015em",
       },
       subtitle1: {
         fontSize: "1rem",
         fontWeight: 500,
-        lineHeight: 1.4,
+        letterSpacing: "0.0015em",
       },
       subtitle2: {
         fontSize: "0.875rem",
         fontWeight: 500,
-        lineHeight: 1.4,
+        letterSpacing: "0.001em",
       },
+      body1: {
+        fontSize: "1rem",
+        letterSpacing: "0.00938em",
+      },
+      body2: {
+        fontSize: "0.875rem",
+        letterSpacing: "0.0142em",
+      },
+      button: {
+        textTransform: "none",
+        fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+        fontWeight: 500,
+        letterSpacing: "0.0107em",
+      },
+      caption: {
+        fontSize: "0.75rem",
+        letterSpacing: "0.04em",
+      },
+      overline: {
+        fontSize: "0.625rem",
+        fontWeight: 500,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+      },
+    },
+    shape: {
+      borderRadius: 8,
     },
     components: {
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 8, // Reduced border radius
-            padding: "10px 24px",
-            boxShadow: "none",
-            "&:hover": {
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            },
+            borderRadius: 20, // Google Pay uses pill-shaped buttons
+            padding: "0 24px",
+            height: 40,
+            fontWeight: 500,
+            fontSize: "0.875rem",
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
           },
           contained: {
+            boxShadow: "none",
             "&:hover": {
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              boxShadow:
+                "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
             },
           },
           outlined: {
             borderWidth: "1px",
           },
+          text: {
+            padding: "0 16px",
+          },
         },
         defaultProps: {
-          disableElevation: true, // Material You uses less elevation by default
+          disableElevation: true,
         },
       },
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 4, // Reduced border radius
-            padding: 16,
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+            borderRadius: 16, // Google Pay uses more rounded cards
+            boxShadow: "none",
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            overflow: "hidden",
           },
         },
       },
       MuiPaper: {
         styleOverrides: {
           rounded: {
-            borderRadius: 4, // Reduced border radius
+            borderRadius: 16, // Google Pay uses more rounded papers
           },
-        },
-      },
-      MuiDialog: {
-        styleOverrides: {
-          paper: {
-            borderRadius: 4, // Reduced border radius
-          },
-        },
-      },
-      MuiTextField: {
-        styleOverrides: {
-          root: {
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 4, // Reduced border radius
-            },
+          elevation1: {
+            boxShadow: "none",
+            border: (theme) => `1px solid ${theme.palette.divider}`,
           },
         },
       },
@@ -170,15 +204,30 @@ export const createAppTheme = (mode) => {
         styleOverrides: {
           root: {
             boxShadow: "none",
+            backgroundColor: (theme) => theme.palette.background.paper,
+            color: (theme) => theme.palette.text.primary,
+            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          },
+        },
+        defaultProps: {
+          elevation: 0,
+        },
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 8,
+            },
           },
         },
       },
       MuiBottomNavigation: {
         styleOverrides: {
           root: {
-            height: 64, // Taller bottom navigation
-            borderTopLeftRadius: 2,
-            borderTopRightRadius: 2,
+            height: 64,
+            backgroundColor: (theme) => theme.palette.background.paper,
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
           },
         },
       },
@@ -186,6 +235,45 @@ export const createAppTheme = (mode) => {
         styleOverrides: {
           root: {
             padding: "8px 0",
+            minWidth: 80,
+            color: (theme) => theme.palette.text.secondary,
+            "&.Mui-selected": {
+              color: (theme) => theme.palette.primary.main,
+            },
+          },
+          label: {
+            fontSize: "0.75rem",
+            "&.Mui-selected": {
+              fontSize: "0.75rem",
+            },
+          },
+        },
+      },
+      MuiFab: {
+        styleOverrides: {
+          root: {
+            boxShadow: "0 2px 4px 0 rgba(0,0,0,0.2)",
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 16,
+            height: 32,
+            fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+          },
+        },
+      },
+      MuiAvatar: {
+        styleOverrides: {
+          root: {
+            fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+            fontWeight: 500,
+          },
+          colorDefault: {
+            backgroundColor: (theme) =>
+              theme.palette.mode === "light" ? "#e0e0e0" : "#5f6368",
           },
         },
       },
@@ -197,23 +285,10 @@ export const createAppTheme = (mode) => {
           },
         },
       },
-      MuiAvatar: {
+      MuiListItemIcon: {
         styleOverrides: {
           root: {
-            fontWeight: 600, // Bolder text in avatars
-            fontSize: "0.9rem", // Slightly smaller font size
-            letterSpacing: "0.5px", // Better letter spacing
-          },
-        },
-      },
-      MuiTab: {
-        styleOverrides: {
-          root: {
-            textTransform: "none",
-            fontSize: "1rem",
-            fontWeight: 500,
-            minHeight: 48,
-            borderRadius: 4, // Reduced border radius
+            minWidth: 40,
           },
         },
       },
@@ -224,50 +299,55 @@ export const createAppTheme = (mode) => {
           },
         },
       },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+            fontWeight: 500,
+            fontSize: "0.875rem",
+            minHeight: 48,
+            padding: "0 16px",
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 16,
+          },
+        },
+      },
+      MuiDialogTitle: {
+        styleOverrides: {
+          root: {
+            fontSize: "1.25rem",
+            fontWeight: 500,
+            fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+          },
+        },
+      },
       MuiDivider: {
         styleOverrides: {
           root: {
-            borderColor: "rgba(0, 0, 0, 0.08)",
+            borderColor: (theme) => theme.palette.divider,
           },
         },
       },
-      MuiSkeleton: {
-        styleOverrides: {
-          rectangular: {
-            borderRadius: 4, // Reduced border radius
-          },
-          text: {
-            borderRadius: 4, // Reduced border radius
-            transform: "scale(1)",
-          },
-        },
-      },
-      MuiFab: {
+      MuiToggleButton: {
         styleOverrides: {
           root: {
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-            borderRadius: 48, // Keep FAB circular
-          },
-        },
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            borderRadius: 4, // Reduced border radius
-          },
-        },
-      },
-      MuiMenu: {
-        styleOverrides: {
-          paper: {
-            borderRadius: 4, // Reduced border radius
-          },
-        },
-      },
-      MuiMenuItem: {
-        styleOverrides: {
-          root: {
-            borderRadius: 4, // Reduced border radius
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif',
+            fontWeight: 500,
+            color: (theme) => theme.palette.text.secondary,
+            "&.Mui-selected": {
+              color: (theme) => theme.palette.primary.main,
+              backgroundColor: (theme) =>
+                theme.palette.mode === "light"
+                  ? "rgba(26, 115, 232, 0.08)"
+                  : "rgba(138, 180, 248, 0.08)",
+            },
           },
         },
       },
@@ -275,6 +355,4 @@ export const createAppTheme = (mode) => {
   });
 };
 
-const theme = createAppTheme(localStorage.getItem("theme") || "light");
-
-export default theme;
+export default createAppTheme;
