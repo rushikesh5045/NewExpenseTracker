@@ -41,8 +41,8 @@ app.get("/", (req, res) => {
 app.get("/health-check", (req, res) => {
   res.json({
     status: "active",
-    version: "1.3.0",
-    update: "Edit/Delete user-created categories feature",
+    version: "1.4.0",
+    update: "Enhanced Statistics page with drill-down transaction lists",
     cache: cacheService.isConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
   });

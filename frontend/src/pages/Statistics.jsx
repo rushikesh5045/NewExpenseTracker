@@ -15,7 +15,6 @@ import {
   CardHeader,
   Divider,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   ToggleButtonGroup,
@@ -25,6 +24,14 @@ import {
   Fade,
   useMediaQuery,
   Button,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Avatar,
+  Collapse,
+  LinearProgress,
+  Tooltip,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -35,12 +42,13 @@ import {
 } from "../services/api";
 import DatePickerDialog from "../components/dashboard/DatePickerDialog";
 import LanguageSelector from "../components/common/LanguageSelector";
+import TransactionListModal from "../components/statistics/TransactionListModal";
 
 // Import chart components
 import {
   Chart as ChartJS,
   ArcElement,
-  Tooltip,
+  Tooltip as ChartTooltip,
   Legend,
   CategoryScale,
   LinearScale,
@@ -49,12 +57,13 @@ import {
   BarElement,
   Title,
 } from "chart.js";
-import { Pie, Bar, Line } from "react-chartjs-2";
+import { Doughnut, Bar, Line } from "react-chartjs-2";
 
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
+import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
 import PieChartRoundedIcon from "@mui/icons-material/PieChartRounded";
 import BarChartRoundedIcon from "@mui/icons-material/BarChartRounded";
 import FilterListRoundedIcon from "@mui/icons-material/FilterListRounded";
@@ -64,11 +73,15 @@ import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
 import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import ExpandLessRoundedIcon from "@mui/icons-material/ExpandLessRounded";
+import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 
 // Register ChartJS components
 ChartJS.register(
   ArcElement,
-  Tooltip,
+  ChartTooltip,
   Legend,
   CategoryScale,
   LinearScale,
@@ -112,9 +125,19 @@ const Statistics = () => {
   const [typeFilter, setTypeFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // State for transaction list modal
+  const [listModalOpen, setListModalOpen] = useState(false);
+  const [listModalTitle, setListModalTitle] = useState("");
+  const [listModalTransactions, setListModalTransactions] = useState([]);
+
+  // State for expanded category list
+  const [expandedCategories, setExpandedCategories] = useState(false);
+
   // Handle tab change
   const handleViewChange = (event, newValue) => {
-    setViewType(newValue);
+    if (newValue !== null) {
+      setViewType(newValue);
+    }
   };
 
   // Navigate to previous period
@@ -218,6 +241,18 @@ const Statistics = () => {
     }).format(amount);
   };
 
+  // Open transaction list modal
+  const openTransactionList = (title, transactionList) => {
+    setListModalTitle(title);
+    setListModalTransactions(transactionList);
+    setListModalOpen(true);
+  };
+
+  // Close transaction list modal
+  const closeTransactionList = () => {
+    setListModalOpen(false);
+  };
+
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
@@ -300,7 +335,36 @@ const Statistics = () => {
     fetchData();
   }, [viewType, currentDate, typeFilter, categoryFilter]);
 
-  // Prepare data for Income vs Expense pie chart
+  // Prepare category breakdown data
+  const getCategoryBreakdown = (type = "expense") => {
+    const categoryData = {};
+
+    transactions.forEach((transaction) => {
+      if (transaction.type === type) {
+        const categoryId = transaction.category._id;
+        const categoryName = transaction.category.name;
+        const categoryColor = transaction.category.color || theme.palette.primary.main;
+
+        if (!categoryData[categoryId]) {
+          categoryData[categoryId] = {
+            id: categoryId,
+            name: categoryName,
+            color: categoryColor,
+            total: 0,
+            transactions: [],
+          };
+        }
+
+        categoryData[categoryId].total += transaction.amount;
+        categoryData[categoryId].transactions.push(transaction);
+      }
+    });
+
+    // Sort by total descending
+    return Object.values(categoryData).sort((a, b) => b.total - a.total);
+  };
+
+  // Prepare data for Income vs Expense doughnut chart
   const prepareIncomeExpenseData = () => {
     return {
       labels: [t("income"), t("expense")],
@@ -311,60 +375,27 @@ const Statistics = () => {
             theme.palette.success.main,
             theme.palette.error.main,
           ],
-          borderColor: [
-            alpha(theme.palette.success.main, 0.8),
-            alpha(theme.palette.error.main, 0.8),
-          ],
-          borderWidth: 1,
+          borderColor: [theme.palette.background.paper, theme.palette.background.paper],
+          borderWidth: 3,
+          hoverOffset: 8,
         },
       ],
     };
   };
 
-  // Prepare data for Category Breakdown pie chart
+  // Prepare data for Category Breakdown doughnut chart
   const prepareCategoryBreakdownData = () => {
-    // Group transactions by category
-    const categoryData = {};
-    const categoryColors = {};
-
-    transactions.forEach((transaction) => {
-      if (
-        transaction.type === "expense" ||
-        typeFilter === "all" ||
-        typeFilter === "expense"
-      ) {
-        const categoryId = transaction.category._id;
-        const categoryName = transaction.category.name;
-        const amount = transaction.amount;
-
-        if (!categoryData[categoryId]) {
-          categoryData[categoryId] = {
-            name: categoryName,
-            total: 0,
-          };
-          categoryColors[categoryId] =
-            transaction.category.color ||
-            "#" + Math.floor(Math.random() * 16777215).toString(16);
-        }
-
-        categoryData[categoryId].total += amount;
-      }
-    });
-
-    const labels = Object.values(categoryData).map((cat) => cat.name);
-    const data = Object.values(categoryData).map((cat) => cat.total);
-    const backgroundColor = Object.keys(categoryData).map(
-      (id) => categoryColors[id]
-    );
+    const breakdown = getCategoryBreakdown("expense");
 
     return {
-      labels,
+      labels: breakdown.map((cat) => cat.name),
       datasets: [
         {
-          data,
-          backgroundColor,
-          borderColor: backgroundColor.map((color) => alpha(color, 0.8)),
-          borderWidth: 1,
+          data: breakdown.map((cat) => cat.total),
+          backgroundColor: breakdown.map((cat) => cat.color),
+          borderColor: breakdown.map(() => theme.palette.background.paper),
+          borderWidth: 2,
+          hoverOffset: 8,
         },
       ],
     };
@@ -375,16 +406,19 @@ const Statistics = () => {
     let labels = [];
     let incomeData = [];
     let expenseData = [];
+    let periodTransactions = [];
 
     if (viewType === "day") {
       // Group by hour for day view
       for (let i = 0; i < 24; i++) {
-        labels.push(`${i}:00`);
+        labels.push(i.toString().padStart(2, '0') + ":00");
 
         const hourTransactions = transactions.filter((t) => {
           const date = new Date(t.date);
           return date.getHours() === i;
         });
+
+        periodTransactions.push(hourTransactions);
 
         const hourIncome = hourTransactions
           .filter((t) => t.type === "income")
@@ -412,6 +446,8 @@ const Statistics = () => {
           const date = new Date(t.date);
           return date.getDate() === i;
         });
+
+        periodTransactions.push(dayTransactions);
 
         const dayIncome = dayTransactions
           .filter((t) => t.type === "income")
@@ -441,6 +477,8 @@ const Statistics = () => {
           return date.getMonth() === i;
         });
 
+        periodTransactions.push(monthTransactions);
+
         const monthIncome = monthTransactions
           .filter((t) => t.type === "income")
           .reduce((sum, t) => sum + t.amount, 0);
@@ -456,69 +494,35 @@ const Statistics = () => {
 
     return {
       labels,
+      periodTransactions,
       datasets: [
         {
           label: t("income"),
           data: incomeData,
           borderColor: theme.palette.success.main,
-          backgroundColor: alpha(theme.palette.success.main, 0.2),
+          backgroundColor: alpha(theme.palette.success.main, 0.1),
           fill: true,
           tension: 0.4,
           borderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: theme.palette.success.main,
+          pointBorderColor: theme.palette.background.paper,
+          pointBorderWidth: 2,
         },
         {
           label: t("expense"),
           data: expenseData,
           borderColor: theme.palette.error.main,
-          backgroundColor: alpha(theme.palette.error.main, 0.2),
+          backgroundColor: alpha(theme.palette.error.main, 0.1),
           fill: true,
           tension: 0.4,
           borderWidth: 2,
-        },
-      ],
-    };
-  };
-
-  // Prepare data for Top Categories bar chart
-  const prepareTopCategoriesData = () => {
-    // Group transactions by category
-    const categoryData = {};
-
-    transactions.forEach((transaction) => {
-      if (transaction.type === "expense" || typeFilter === "expense") {
-        const categoryId = transaction.category._id;
-        const categoryName = transaction.category.name;
-        const amount = transaction.amount;
-
-        if (!categoryData[categoryId]) {
-          categoryData[categoryId] = {
-            name: categoryName,
-            total: 0,
-          };
-        }
-
-        categoryData[categoryId].total += amount;
-      }
-    });
-
-    // Sort categories by total and take top 5
-    const topCategories = Object.values(categoryData)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
-
-    const labels = topCategories.map((cat) => cat.name);
-    const data = topCategories.map((cat) => cat.total);
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: t("expense_amount"),
-          data,
-          backgroundColor: alpha(theme.palette.error.main, 0.8),
-          borderColor: theme.palette.error.main,
-          borderWidth: 1,
-          borderRadius: 4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: theme.palette.error.main,
+          pointBorderColor: theme.palette.background.paper,
+          pointBorderWidth: 2,
         },
       ],
     };
@@ -531,20 +535,13 @@ const Statistics = () => {
   };
 
   // Chart options
-  const pieChartOptions = {
+  const doughnutChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    cutout: "70%",
     plugins: {
       legend: {
-        position: "bottom",
-        labels: {
-          font: {
-            family: '"Google Sans", "Roboto", sans-serif',
-            size: 12,
-          },
-          usePointStyle: true,
-          padding: 20,
-        },
+        display: false,
       },
       tooltip: {
         titleFont: {
@@ -569,23 +566,27 @@ const Statistics = () => {
         },
       },
     },
-    cutout: "60%",
   };
 
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: "index",
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: "top",
-        align: "start",
+        align: "end",
         labels: {
           font: {
             family: '"Google Sans", "Roboto", sans-serif',
             size: 12,
           },
           usePointStyle: true,
-          padding: 20,
+          pointStyle: "circle",
+          padding: 16,
         },
       },
       tooltip: {
@@ -617,107 +618,139 @@ const Statistics = () => {
         ticks: {
           font: {
             family: '"Google Sans Text", "Roboto", sans-serif',
+            size: 11,
           },
           callback: function (value) {
             if (value >= 1000) {
-              return (value / 1000).toFixed(0) + "k";
+              return "₹" + (value / 1000).toFixed(0) + "k";
             }
-            return value;
+            return "₹" + value;
           },
         },
         grid: {
           drawBorder: false,
-          color: alpha(theme.palette.text.secondary, 0.1),
+          color: alpha(theme.palette.divider, 0.5),
         },
       },
       x: {
         ticks: {
           font: {
             family: '"Google Sans Text", "Roboto", sans-serif',
+            size: 11,
           },
           maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: viewType === "month" ? 10 : 12,
         },
         grid: {
           display: false,
         },
-      },
-    },
-    elements: {
-      point: {
-        radius: 3,
-        hoverRadius: 5,
-      },
-      line: {
-        tension: 0.3,
       },
     },
   };
 
-  const barChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-      tooltip: {
-        titleFont: {
-          family: '"Google Sans", "Roboto", sans-serif',
-          size: 14,
-        },
-        bodyFont: {
-          family: '"Google Sans Text", "Roboto", sans-serif',
-          size: 13,
-        },
-        callbacks: {
-          label: function (context) {
-            let label = context.dataset.label || "";
-            if (label) {
-              label += ": ";
-            }
-            if (context.parsed.y !== undefined) {
-              label += formatCurrency(context.parsed.y);
-            }
-            return label;
+  // Render category list item
+  const renderCategoryItem = (category, maxTotal) => {
+    const percentage = maxTotal > 0 ? (category.total / maxTotal) * 100 : 0;
+
+    return (
+      <ListItem
+        key={category.id}
+        button
+        onClick={() => openTransactionList(category.name, category.transactions)}
+        sx={{
+          py: 1.5,
+          px: 2,
+          borderRadius: 2,
+          mb: 1,
+          backgroundColor: alpha(category.color, 0.04),
+          "&:hover": {
+            backgroundColor: alpha(category.color, 0.08),
           },
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        ticks: {
-          font: {
-            family: '"Google Sans Text", "Roboto", sans-serif',
-          },
-          callback: function (value) {
-            if (value >= 1000) {
-              return (value / 1000).toFixed(0) + "k";
-            }
-            return value;
-          },
-        },
-        grid: {
-          drawBorder: false,
-          color: alpha(theme.palette.text.secondary, 0.1),
-        },
-      },
-      x: {
-        ticks: {
-          font: {
-            family: '"Google Sans Text", "Roboto", sans-serif',
-          },
-          maxRotation: 45,
-          minRotation: 45,
-        },
-        grid: {
-          display: false,
-        },
-      },
-    },
-    barThickness: 30,
-    borderRadius: 4,
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 44 }}>
+          <Avatar
+            sx={{
+              width: 36,
+              height: 36,
+              bgcolor: alpha(category.color, 0.15),
+              color: category.color,
+              fontSize: "0.75rem",
+              fontWeight: 600,
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+            }}
+          >
+            {category.name.substring(0, 2).toUpperCase()}
+          </Avatar>
+        </ListItemIcon>
+        <ListItemText
+          primary={
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
+              <Typography
+                sx={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                }}
+              >
+                {category.name}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                  fontSize: "0.875rem",
+                  color: category.color,
+                }}
+              >
+                {formatCurrency(category.total)}
+              </Typography>
+            </Box>
+          }
+          secondary={
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <LinearProgress
+                variant="determinate"
+                value={percentage}
+                sx={{
+                  flex: 1,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: alpha(category.color, 0.1),
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor: category.color,
+                    borderRadius: 3,
+                  },
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                  color: "text.secondary",
+                  minWidth: 40,
+                  textAlign: "right",
+                }}
+              >
+                {category.transactions.length} {category.transactions.length === 1 ? "item" : "items"}
+              </Typography>
+            </Box>
+          }
+          secondaryTypographyProps={{ component: "div" }}
+        />
+        <KeyboardArrowRightRoundedIcon
+          sx={{ color: "text.secondary", ml: 1 }}
+          fontSize="small"
+        />
+      </ListItem>
+    );
   };
+
+  const expenseBreakdown = getCategoryBreakdown("expense");
+  const incomeBreakdown = getCategoryBreakdown("income");
+  const maxExpenseTotal = expenseBreakdown.length > 0 ? expenseBreakdown[0].total : 0;
+  const maxIncomeTotal = incomeBreakdown.length > 0 ? incomeBreakdown[0].total : 0;
 
   return (
     <Container maxWidth="lg" sx={{ pb: 10 }}>
@@ -737,7 +770,7 @@ const Statistics = () => {
             component="h1"
             sx={{
               fontFamily: '"Google Sans", "Roboto", sans-serif',
-              fontWeight: 400,
+              fontWeight: 500,
               fontSize: "1.5rem",
             }}
           >
@@ -756,49 +789,55 @@ const Statistics = () => {
         <LanguageSelector />
       </Box>
 
-      {/* View Type Tabs */}
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 3,
-          mb: 2,
-          overflow: "hidden",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Tabs
+      {/* View Type Toggle */}
+      <Box sx={{ mb: 2 }}>
+        <ToggleButtonGroup
           value={viewType}
+          exclusive
           onChange={handleViewChange}
-          variant="fullWidth"
-          textColor="primary"
-          indicatorColor="primary"
-          aria-label="statistics view tabs"
+          aria-label="view type"
+          fullWidth
           sx={{
-            "& .MuiTab-root": {
+            backgroundColor: alpha(theme.palette.action.selected, 0.04),
+            borderRadius: 3,
+            p: 0.5,
+            "& .MuiToggleButtonGroup-grouped": {
+              border: "none",
+              borderRadius: "20px !important",
+              mx: 0.5,
+              py: 1,
+              px: 3,
               textTransform: "none",
               fontFamily: '"Google Sans", "Roboto", sans-serif',
               fontWeight: 500,
               fontSize: "0.875rem",
-              minHeight: 48,
-            },
-            "& .MuiTabs-indicator": {
-              height: 3,
+              color: "text.secondary",
+              "&.Mui-selected": {
+                backgroundColor: theme.palette.background.paper,
+                color: theme.palette.primary.main,
+                boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                "&:hover": {
+                  backgroundColor: theme.palette.background.paper,
+                },
+              },
+              "&:hover": {
+                backgroundColor: alpha(theme.palette.action.hover, 0.08),
+              },
             },
           }}
         >
-          <Tab value="day" label={t("day")} />
-          <Tab value="month" label={t("month")} />
-          <Tab value="year" label={t("year")} />
-        </Tabs>
-      </Paper>
+          <ToggleButton value="day">{t("day")}</ToggleButton>
+          <ToggleButton value="month">{t("month")}</ToggleButton>
+          <ToggleButton value="year">{t("year")}</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
       {/* Date Navigator */}
       <Paper
         elevation={0}
         sx={{
-          p: 2,
-          mb: 3,
+          p: 1.5,
+          mb: 2,
           borderRadius: 3,
           display: "flex",
           alignItems: "center",
@@ -811,54 +850,35 @@ const Statistics = () => {
           onClick={handlePrevious}
           sx={{
             color: "text.secondary",
-            backgroundColor: alpha(theme.palette.action.active, 0.04),
-            "&:hover": {
-              backgroundColor: alpha(theme.palette.action.active, 0.08),
-            },
           }}
         >
           <ChevronLeftRoundedIcon />
         </IconButton>
 
-        <Box
+        <Button
+          onClick={handleOpenDatePicker}
+          startIcon={<CalendarTodayRoundedIcon fontSize="small" />}
+          endIcon={<ArrowDropDownRoundedIcon />}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer",
-            px: 2,
-            py: 1,
+            textTransform: "none",
+            fontFamily: '"Google Sans", "Roboto", sans-serif',
+            fontWeight: 500,
+            fontSize: "0.9375rem",
+            color: "text.primary",
             borderRadius: 20,
+            px: 2,
             "&:hover": {
               backgroundColor: alpha(theme.palette.action.active, 0.04),
             },
           }}
-          onClick={handleOpenDatePicker}
         >
-          <CalendarTodayRoundedIcon
-            fontSize="small"
-            color="primary"
-            sx={{ mr: 1 }}
-          />
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontFamily: '"Google Sans", "Roboto", sans-serif',
-              fontWeight: 500,
-            }}
-          >
-            {getFormattedDate()}
-          </Typography>
-          <ArrowDropDownRoundedIcon color="action" />
-        </Box>
+          {getFormattedDate()}
+        </Button>
 
         <IconButton
           onClick={handleNext}
           sx={{
             color: "text.secondary",
-            backgroundColor: alpha(theme.palette.action.active, 0.04),
-            "&:hover": {
-              backgroundColor: alpha(theme.palette.action.active, 0.08),
-            },
           }}
         >
           <ChevronRightRoundedIcon />
@@ -871,73 +891,48 @@ const Statistics = () => {
           display: "flex",
           justifyContent: "space-between",
           mb: 2,
-          gap: 2,
+          gap: 1,
         }}
       >
-        {!isToday() && (
-          <Button
-            size="medium"
-            startIcon={<TodayRoundedIcon />}
+        {!isToday() && viewType === "day" && (
+          <Chip
+            icon={<TodayRoundedIcon />}
+            label={t("today")}
             onClick={handleToday}
             variant="outlined"
             sx={{
-              borderRadius: 20,
-              px: 2,
-              textTransform: "none",
               fontFamily: '"Google Sans", "Roboto", sans-serif',
               fontWeight: 500,
             }}
-          >
-            {t("today")}
-          </Button>
+          />
         )}
 
-        <Button
-          size="medium"
-          startIcon={<TuneRoundedIcon />}
+        <Chip
+          icon={<TuneRoundedIcon />}
+          label={t("filters")}
           onClick={toggleFilters}
-          variant="outlined"
+          variant={showFilters ? "filled" : "outlined"}
+          color={showFilters ? "primary" : "default"}
           sx={{
-            borderRadius: 20,
-            px: 2,
             ml: "auto",
-            textTransform: "none",
             fontFamily: '"Google Sans", "Roboto", sans-serif',
             fontWeight: 500,
           }}
-        >
-          {t("filters")}
-        </Button>
+        />
       </Box>
 
       {/* Filters */}
-      <Fade in={showFilters}>
+      <Collapse in={showFilters}>
         <Paper
           elevation={0}
           sx={{
-            p: 3,
-            mb: 3,
+            p: 2.5,
+            mb: 2,
             borderRadius: 3,
             border: "1px solid",
             borderColor: "divider",
-            display: showFilters ? "block" : "none",
           }}
         >
-          <Typography
-            variant="subtitle1"
-            gutterBottom
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              fontFamily: '"Google Sans", "Roboto", sans-serif',
-              fontWeight: 500,
-              mb: 2,
-            }}
-          >
-            <FilterListRoundedIcon fontSize="small" sx={{ mr: 1 }} />
-            {t("filters")}
-          </Typography>
-
           <Box
             sx={{
               display: "flex",
@@ -948,12 +943,12 @@ const Statistics = () => {
             {/* Transaction Type Filter */}
             <Box sx={{ flex: 1 }}>
               <Typography
-                variant="body2"
+                variant="caption"
                 color="text.secondary"
-                gutterBottom
                 sx={{
                   fontFamily: '"Google Sans Text", "Roboto", sans-serif',
                   mb: 1,
+                  display: "block",
                 }}
               >
                 {t("transaction_type")}
@@ -962,29 +957,23 @@ const Statistics = () => {
                 value={typeFilter}
                 exclusive
                 onChange={handleTypeFilterChange}
-                aria-label="transaction type filter"
                 size="small"
                 fullWidth
                 sx={{
                   "& .MuiToggleButtonGroup-grouped": {
-                    borderRadius: "20px !important",
-                    mx: 0,
-                    border: `1px solid ${theme.palette.divider}`,
-                    "&.Mui-selected": {
-                      boxShadow: "none",
-                    },
+                    borderRadius: "16px !important",
+                    border: "1px solid " + theme.palette.divider,
                     textTransform: "none",
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
+                    fontSize: "0.8125rem",
+                    py: 0.75,
                   },
                 }}
               >
-                <ToggleButton value="all" aria-label="all transactions">
-                  {t("all")}
-                </ToggleButton>
+                <ToggleButton value="all">{t("all")}</ToggleButton>
                 <ToggleButton
                   value="income"
-                  aria-label="income only"
                   sx={{
                     "&.Mui-selected": {
                       color: theme.palette.success.main,
@@ -996,7 +985,6 @@ const Statistics = () => {
                 </ToggleButton>
                 <ToggleButton
                   value="expense"
-                  aria-label="expenses only"
                   sx={{
                     "&.Mui-selected": {
                       color: theme.palette.error.main,
@@ -1012,12 +1000,12 @@ const Statistics = () => {
             {/* Category Filter */}
             <Box sx={{ flex: 1 }}>
               <Typography
-                variant="body2"
+                variant="caption"
                 color="text.secondary"
-                gutterBottom
                 sx={{
                   fontFamily: '"Google Sans Text", "Roboto", sans-serif',
                   mb: 1,
+                  display: "block",
                 }}
               >
                 {t("category")}
@@ -1026,44 +1014,15 @@ const Statistics = () => {
                 <Select
                   value={categoryFilter}
                   onChange={handleCategoryFilterChange}
-                  displayEmpty
                   sx={{
-                    borderRadius: 20,
-                    height: 40,
+                    borderRadius: 4,
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
-                    "& .MuiSelect-select": {
-                      display: "flex",
-                      alignItems: "center",
-                    },
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        borderRadius: 2,
-                        mt: 0.5,
-                        maxHeight: 300,
-                      },
-                    },
+                    fontSize: "0.875rem",
                   }}
                 >
-                  <MenuItem
-                    value="all"
-                    sx={{
-                      fontFamily: '"Google Sans", "Roboto", sans-serif',
-                      borderRadius: 1,
-                    }}
-                  >
-                    {t("all_categories")}
-                  </MenuItem>
+                  <MenuItem value="all">{t("all_categories")}</MenuItem>
                   {categories.map((category) => (
-                    <MenuItem
-                      key={category._id}
-                      value={category._id}
-                      sx={{
-                        fontFamily: '"Google Sans", "Roboto", sans-serif',
-                        borderRadius: 1,
-                      }}
-                    >
+                    <MenuItem key={category._id} value={category._id}>
                       {category.name}
                     </MenuItem>
                   ))}
@@ -1072,7 +1031,7 @@ const Statistics = () => {
             </Box>
           </Box>
         </Paper>
-      </Fade>
+      </Collapse>
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
@@ -1081,65 +1040,57 @@ const Statistics = () => {
       ) : (
         <>
           {/* Summary Cards */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid container spacing={1.5} sx={{ mb: 3 }}>
             {/* Income Card */}
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={4}>
               <Paper
                 elevation={0}
+                onClick={() => openTransactionList(t("income"), transactions.filter(t => t.type === "income"))}
                 sx={{
-                  p: 3,
-                  height: "100%",
+                  p: 2,
                   borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden",
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: "4px",
-                    backgroundColor: theme.palette.success.main,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: theme.palette.success.main,
+                    backgroundColor: alpha(theme.palette.success.main, 0.02),
                   },
                 }}
               >
                 <Box
                   sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "50%",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 2,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundColor: alpha(theme.palette.success.main, 0.1),
                     color: theme.palette.success.main,
-                    mb: 1,
+                    mb: 1.5,
                   }}
                 >
-                  <TrendingUpRoundedIcon />
+                  <TrendingUpRoundedIcon fontSize="small" />
                 </Box>
                 <Typography
-                  variant="body2"
+                  variant="caption"
                   color="text.secondary"
-                  gutterBottom
                   sx={{
                     fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                    display: "block",
                   }}
                 >
                   {t("income")}
                 </Typography>
                 <Typography
                   variant="h6"
-                  color="success.main"
                   sx={{
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
+                    fontSize: isMobile ? "1rem" : "1.25rem",
+                    color: theme.palette.success.main,
                   }}
                 >
                   {formatCurrency(summary.income)}
@@ -1148,63 +1099,55 @@ const Statistics = () => {
             </Grid>
 
             {/* Expense Card */}
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={4}>
               <Paper
                 elevation={0}
+                onClick={() => openTransactionList(t("expense"), transactions.filter(t => t.type === "expense"))}
                 sx={{
-                  p: 3,
-                  height: "100%",
+                  p: 2,
                   borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden",
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: "4px",
-                    backgroundColor: theme.palette.error.main,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: theme.palette.error.main,
+                    backgroundColor: alpha(theme.palette.error.main, 0.02),
                   },
                 }}
               >
                 <Box
                   sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "50%",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 2,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundColor: alpha(theme.palette.error.main, 0.1),
                     color: theme.palette.error.main,
-                    mb: 1,
+                    mb: 1.5,
                   }}
                 >
-                  <AccountBalanceWalletRoundedIcon />
+                  <TrendingDownRoundedIcon fontSize="small" />
                 </Box>
                 <Typography
-                  variant="body2"
+                  variant="caption"
                   color="text.secondary"
-                  gutterBottom
                   sx={{
                     fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                    display: "block",
                   }}
                 >
                   {t("expense")}
                 </Typography>
                 <Typography
                   variant="h6"
-                  color="error.main"
                   sx={{
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
+                    fontSize: isMobile ? "1rem" : "1.25rem",
+                    color: theme.palette.error.main,
                   }}
                 >
                   {formatCurrency(summary.expense)}
@@ -1212,431 +1155,506 @@ const Statistics = () => {
               </Paper>
             </Grid>
 
-            {/* Savings Rate Card */}
-            <Grid item xs={12} sm={4}>
+            {/* Balance Card */}
+            <Grid item xs={4}>
               <Paper
                 elevation={0}
+                onClick={() => openTransactionList(t("balance"), transactions)}
                 sx={{
-                  p: 3,
-                  height: "100%",
+                  p: 2,
                   borderRadius: 3,
                   border: "1px solid",
                   borderColor: "divider",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  overflow: "hidden",
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: "4px",
-                    backgroundColor:
-                      calculateSavingsRate() >= 0
-                        ? theme.palette.success.main
-                        : theme.palette.error.main,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.02),
                   },
                 }}
               >
                 <Box
                   sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "50%",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 2,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor:
-                      calculateSavingsRate() >= 0
-                        ? alpha(theme.palette.success.main, 0.1)
-                        : alpha(theme.palette.error.main, 0.1),
-                    color:
-                      calculateSavingsRate() >= 0
-                        ? theme.palette.success.main
-                        : theme.palette.error.main,
-                    mb: 1,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    mb: 1.5,
                   }}
                 >
-                  <SavingsRoundedIcon />
+                  <AccountBalanceWalletRoundedIcon fontSize="small" />
                 </Box>
                 <Typography
-                  variant="body2"
+                  variant="caption"
                   color="text.secondary"
-                  gutterBottom
                   sx={{
                     fontFamily: '"Google Sans Text", "Roboto", sans-serif',
+                    display: "block",
                   }}
                 >
-                  {t("savings_rate")}
+                  {t("balance")}
                 </Typography>
                 <Typography
                   variant="h6"
-                  color={
-                    calculateSavingsRate() >= 0 ? "success.main" : "error.main"
-                  }
                   sx={{
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
+                    fontSize: isMobile ? "1rem" : "1.25rem",
+                    color: summary.income - summary.expense >= 0 
+                      ? theme.palette.success.main 
+                      : theme.palette.error.main,
                   }}
                 >
-                  {calculateSavingsRate().toFixed(0)}%
+                  {formatCurrency(summary.income - summary.expense)}
                 </Typography>
               </Paper>
             </Grid>
           </Grid>
 
-          {/* Charts */}
-          <Grid container spacing={3}>
-            {/* Income vs Expense Pie Chart */}
-            <Grid item xs={12} md={6}>
-              <Card
-                elevation={0}
+          {/* Income vs Expense Overview */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+              <Box
                 sx={{
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  height: "100%",
-                  overflow: "hidden",
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                  mr: 1.5,
                 }}
               >
-                <CardHeader
-                  title={t("income_vs_expense")}
-                  titleTypographyProps={{
-                    variant: "subtitle1",
-                    fontFamily: '"Google Sans", "Roboto", sans-serif',
-                    fontWeight: 500,
-                  }}
-                  avatar={
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
-                      }}
-                    >
-                      <PieChartRoundedIcon fontSize="small" />
-                    </Box>
-                  }
-                  sx={{ px: 3, py: 2 }}
+                <PieChartRoundedIcon fontSize="small" />
+              </Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                }}
+              >
+                {t("income_vs_expense")}
+              </Typography>
+            </Box>
+
+            {summary.income === 0 && summary.expense === 0 ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  py: 4,
+                  flexDirection: "column",
+                }}
+              >
+                <InsightsRoundedIcon
+                  sx={{ fontSize: 48, color: "text.disabled", mb: 1 }}
                 />
-                <Divider />
-                <CardContent sx={{ height: 300, p: 3 }}>
-                  {summary.income === 0 && summary.expense === 0 ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        height: "100%",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: alpha(
-                            theme.palette.action.active,
-                            0.08
-                          ),
-                          color: theme.palette.text.secondary,
-                          mb: 2,
-                        }}
-                      >
-                        <InsightsRoundedIcon />
-                      </Box>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          fontFamily: '"Google Sans", "Roboto", sans-serif',
-                        }}
-                      >
-                        {t("no_data_available")}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Pie
+                <Typography color="text.secondary">
+                  {t("no_data_available")}
+                </Typography>
+              </Box>
+            ) : (
+              <Grid container spacing={3} alignItems="center">
+                <Grid item xs={12} sm={5}>
+                  <Box sx={{ height: 180, position: "relative" }}>
+                    <Doughnut
                       data={prepareIncomeExpenseData()}
-                      options={pieChartOptions}
+                      options={doughnutChartOptions}
                     />
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Category Breakdown Pie Chart */}
-            <Grid item xs={12} md={6}>
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  height: "100%",
-                  overflow: "hidden",
-                }}
-              >
-                <CardHeader
-                  title={t("expense_by_category")}
-                  titleTypographyProps={{
-                    variant: "subtitle1",
-                    fontFamily: '"Google Sans", "Roboto", sans-serif',
-                    fontWeight: 500,
-                  }}
-                  avatar={
+                    {/* Center text */}
                     <Box
                       sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        textAlign: "center",
                       }}
                     >
-                      <PieChartRoundedIcon fontSize="small" />
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontFamily: '"Google Sans Text", "Roboto", sans-serif' }}
+                      >
+                        {t("savings_rate")}
+                      </Typography>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontFamily: '"Google Sans", "Roboto", sans-serif',
+                          fontWeight: 600,
+                          color: calculateSavingsRate() >= 0 
+                            ? theme.palette.success.main 
+                            : theme.palette.error.main,
+                        }}
+                      >
+                        {calculateSavingsRate().toFixed(0)}%
+                      </Typography>
                     </Box>
-                  }
-                  sx={{ px: 3, py: 2 }}
-                />
-                <Divider />
-                <CardContent sx={{ height: 300, p: 3 }}>
-                  {summary.expense === 0 ? (
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={7}>
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {/* Income row */}
                     <Box
+                      onClick={() => openTransactionList(t("income"), transactions.filter(t => t.type === "income"))}
                       sx={{
                         display: "flex",
-                        height: "100%",
                         alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
+                        p: 1.5,
+                        borderRadius: 2,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          backgroundColor: alpha(theme.palette.success.main, 0.04),
+                        },
                       }}
                     >
                       <Box
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: 12,
+                          height: 12,
                           borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: alpha(
-                            theme.palette.action.active,
-                            0.08
-                          ),
-                          color: theme.palette.text.secondary,
-                          mb: 2,
+                          backgroundColor: theme.palette.success.main,
+                          mr: 1.5,
                         }}
-                      >
-                        <InsightsRoundedIcon />
+                      />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontFamily: '"Google Sans Text", "Roboto", sans-serif' }}
+                        >
+                          {t("income")}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: '"Google Sans", "Roboto", sans-serif',
+                            fontWeight: 500,
+                            color: theme.palette.success.main,
+                          }}
+                        >
+                          {formatCurrency(summary.income)}
+                        </Typography>
                       </Box>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
+                      <Chip
+                        size="small"
+                        label={transactions.filter(t => t.type === "income").length + " items"}
                         sx={{
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
+                          fontSize: "0.75rem",
                         }}
-                      >
-                        {t("no_expense_data_available")}
-                      </Typography>
+                      />
+                      <KeyboardArrowRightRoundedIcon sx={{ color: "text.secondary", ml: 0.5 }} />
                     </Box>
-                  ) : (
-                    <Pie
-                      data={prepareCategoryBreakdownData()}
-                      options={pieChartOptions}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
 
-            {/* Trend Analysis Line Chart */}
-            <Grid item xs={12}>
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  overflow: "hidden",
-                }}
-              >
-                <CardHeader
-                  title={t("income_and_expense_trend")}
-                  titleTypographyProps={{
-                    variant: "subtitle1",
-                    fontFamily: '"Google Sans", "Roboto", sans-serif',
-                    fontWeight: 500,
-                  }}
-                  avatar={
+                    {/* Expense row */}
                     <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
-                      }}
-                    >
-                      <TrendingUpRoundedIcon fontSize="small" />
-                    </Box>
-                  }
-                  sx={{ px: 3, py: 2 }}
-                />
-                <Divider />
-                <CardContent sx={{ height: 350, p: 3 }}>
-                  {transactions.length === 0 ? (
-                    <Box
+                      onClick={() => openTransactionList(t("expense"), transactions.filter(t => t.type === "expense"))}
                       sx={{
                         display: "flex",
-                        height: "100%",
                         alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
+                        p: 1.5,
+                        borderRadius: 2,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          backgroundColor: alpha(theme.palette.error.main, 0.04),
+                        },
                       }}
                     >
                       <Box
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: 12,
+                          height: 12,
                           borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: alpha(
-                            theme.palette.action.active,
-                            0.08
-                          ),
-                          color: theme.palette.text.secondary,
-                          mb: 2,
+                          backgroundColor: theme.palette.error.main,
+                          mr: 1.5,
                         }}
-                      >
-                        <InsightsRoundedIcon />
+                      />
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ fontFamily: '"Google Sans Text", "Roboto", sans-serif' }}
+                        >
+                          {t("expense")}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: '"Google Sans", "Roboto", sans-serif',
+                            fontWeight: 500,
+                            color: theme.palette.error.main,
+                          }}
+                        >
+                          {formatCurrency(summary.expense)}
+                        </Typography>
                       </Box>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
+                      <Chip
+                        size="small"
+                        label={transactions.filter(t => t.type === "expense").length + " items"}
                         sx={{
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
+                          fontSize: "0.75rem",
                         }}
-                      >
-                        {t("no_trend_data_available")}
-                      </Typography>
+                      />
+                      <KeyboardArrowRightRoundedIcon sx={{ color: "text.secondary", ml: 0.5 }} />
                     </Box>
-                  ) : (
-                    <Line
-                      data={prepareTrendData()}
-                      options={lineChartOptions}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
+                  </Box>
+                </Grid>
+              </Grid>
+            )}
+          </Paper>
 
-            {/* Top Categories Bar Chart */}
-            <Grid item xs={12}>
-              <Card
-                elevation={0}
-                sx={{
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  overflow: "hidden",
-                }}
-              >
-                <CardHeader
-                  title={t("top_expense_categories")}
-                  titleTypographyProps={{
-                    variant: "subtitle1",
+          {/* Expense by Category */}
+          {expenseBreakdown.length > 0 && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: alpha(theme.palette.error.main, 0.1),
+                      color: theme.palette.error.main,
+                      mr: 1.5,
+                    }}
+                  >
+                    <BarChartRoundedIcon fontSize="small" />
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        fontWeight: 500,
+                      }}
+                    >
+                      {t("expense_by_category")}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontFamily: '"Google Sans Text", "Roboto", sans-serif' }}
+                    >
+                      {expenseBreakdown.length} {t("categories")}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography
+                  sx={{
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
+                    color: theme.palette.error.main,
                   }}
-                  avatar={
-                    <Box
+                >
+                  {formatCurrency(summary.expense)}
+                </Typography>
+              </Box>
+
+              <List sx={{ py: 0 }}>
+                {(expandedCategories ? expenseBreakdown : expenseBreakdown.slice(0, 5)).map((category) =>
+                  renderCategoryItem(category, maxExpenseTotal)
+                )}
+              </List>
+
+              {expenseBreakdown.length > 5 && (
+                <Button
+                  fullWidth
+                  onClick={() => setExpandedCategories(!expandedCategories)}
+                  endIcon={expandedCategories ? <ExpandLessRoundedIcon /> : <ExpandMoreRoundedIcon />}
+                  sx={{
+                    mt: 1,
+                    textTransform: "none",
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                    color: "text.secondary",
+                  }}
+                >
+                  {expandedCategories 
+                    ? t("show_less") 
+                    : t("show_all") + " (" + expenseBreakdown.length + ")"}
+                </Button>
+              )}
+            </Paper>
+          )}
+
+          {/* Income by Category */}
+          {incomeBreakdown.length > 0 && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: alpha(theme.palette.success.main, 0.1),
+                      color: theme.palette.success.main,
+                      mr: 1.5,
+                    }}
+                  >
+                    <TrendingUpRoundedIcon fontSize="small" />
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
                       sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
+                        fontFamily: '"Google Sans", "Roboto", sans-serif',
+                        fontWeight: 500,
                       }}
                     >
-                      <BarChartRoundedIcon fontSize="small" />
-                    </Box>
-                  }
-                  sx={{ px: 3, py: 2 }}
+                      {t("income_by_category")}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontFamily: '"Google Sans Text", "Roboto", sans-serif' }}
+                    >
+                      {incomeBreakdown.length} {t("categories")}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    fontWeight: 500,
+                    color: theme.palette.success.main,
+                  }}
+                >
+                  {formatCurrency(summary.income)}
+                </Typography>
+              </Box>
+
+              <List sx={{ py: 0 }}>
+                {incomeBreakdown.slice(0, 5).map((category) =>
+                  renderCategoryItem(category, maxIncomeTotal)
+                )}
+              </List>
+            </Paper>
+          )}
+
+          {/* Trend Chart */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                  mr: 1.5,
+                }}
+              >
+                <InsightsRoundedIcon fontSize="small" />
+              </Box>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                }}
+              >
+                {t("income_and_expense_trend")}
+              </Typography>
+            </Box>
+
+            {transactions.length === 0 ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  py: 4,
+                  flexDirection: "column",
+                }}
+              >
+                <InsightsRoundedIcon
+                  sx={{ fontSize: 48, color: "text.disabled", mb: 1 }}
                 />
-                <Divider />
-                <CardContent sx={{ height: 350, p: 3 }}>
-                  {summary.expense === 0 ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        height: "100%",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: alpha(
-                            theme.palette.action.active,
-                            0.08
-                          ),
-                          color: theme.palette.text.secondary,
-                          mb: 2,
-                        }}
-                      >
-                        <InsightsRoundedIcon />
-                      </Box>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          fontFamily: '"Google Sans", "Roboto", sans-serif',
-                        }}
-                      >
-                        {t("no_expense_data_available")}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <Bar
-                      data={prepareTopCategoriesData()}
-                      options={barChartOptions}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
+                <Typography color="text.secondary">
+                  {t("no_trend_data_available")}
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ height: 280 }}>
+                <Line data={prepareTrendData()} options={lineChartOptions} />
+              </Box>
+            )}
+          </Paper>
+
+          {/* All Transactions Button */}
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<ReceiptLongRoundedIcon />}
+            onClick={() => openTransactionList(t("all_transactions"), transactions)}
+            sx={{
+              py: 1.5,
+              borderRadius: 3,
+              textTransform: "none",
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              fontSize: "0.9375rem",
+            }}
+          >
+            {t("view_all_transactions")} ({transactions.length})
+          </Button>
         </>
       )}
 
@@ -1647,6 +1665,18 @@ const Statistics = () => {
         selectedDate={currentDate}
         onDateChange={handleDateChange}
         viewType={viewType}
+      />
+
+      {/* Transaction List Modal */}
+      <TransactionListModal
+        open={listModalOpen}
+        onClose={closeTransactionList}
+        title={listModalTitle}
+        transactions={listModalTransactions}
+        onUpdate={() => {
+          // Trigger a re-fetch by changing a dependency
+          setCurrentDate(new Date(currentDate));
+        }}
       />
     </Container>
   );
