@@ -19,7 +19,6 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { forgotPassword } from "../services/api";
 
-// Google-style icons
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
@@ -38,7 +37,7 @@ const ForgotPassword = () => {
     e.preventDefault();
 
     if (!email) {
-      setError(t("Please enter your email address"));
+      setError(t("please_enter_your_email_address"));
       return;
     }
 
@@ -50,7 +49,7 @@ const ForgotPassword = () => {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          t("Failed to process your request. Please try again.")
+          t("failed_to_process_your_request_please_try_again")
       );
     } finally {
       setLoading(false);
@@ -162,7 +161,7 @@ const ForgotPassword = () => {
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 500,
                   fontSize: "0.9375rem",
-                  borderRadius: "24px", // Google Pay's pill-shaped buttons
+                  borderRadius: "24px",
                   boxShadow: "none",
                   "&:hover": {
                     boxShadow:
@@ -170,7 +169,7 @@ const ForgotPassword = () => {
                   },
                 }}
               >
-                {t("Return to sign in")}
+                {t("return_to_sign_in")}
               </Button>
             </Box>
           ) : (
@@ -222,7 +221,7 @@ const ForgotPassword = () => {
                   required
                   fullWidth
                   id="email"
-                  label={t("Email address")}
+                  label={t("email_address")}
                   name="email"
                   autoComplete="email"
                   autoFocus
@@ -263,7 +262,7 @@ const ForgotPassword = () => {
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
                     fontSize: "0.9375rem",
-                    borderRadius: "24px", // Google Pay's pill-shaped buttons
+                    borderRadius: "24px",
                     boxShadow: "none",
                     "&:hover": {
                       boxShadow:
@@ -285,10 +284,10 @@ const ForgotPassword = () => {
                         color="inherit"
                         sx={{ mr: 1 }}
                       />
-                      {t("Sending...")}
+                      {t("sending")}
                     </Box>
                   ) : (
-                    t("Send reset link")
+                    t("send_reset_link")
                   )}
                 </Button>
 
@@ -311,7 +310,7 @@ const ForgotPassword = () => {
                       },
                     }}
                   >
-                    {t("Back to sign in")}
+                    {t("back_to_sign_in")}
                   </Button>
                 </Box>
               </Box>
@@ -331,7 +330,7 @@ const ForgotPassword = () => {
               mb: 0.5,
             }}
           >
-            {t("By continuing, you agree to our")}
+            {t("by_continuing,_you_agree_to_our")}
           </Typography>
           <Box
             sx={{
@@ -354,7 +353,7 @@ const ForgotPassword = () => {
                 },
               }}
             >
-              {t("Terms of Service")}
+              {t("terms_of_service")}
             </Link>
             <Typography
               variant="caption"
@@ -378,7 +377,7 @@ const ForgotPassword = () => {
                 },
               }}
             >
-              {t("Privacy Policy")}
+              {t("privacy_policy")}
             </Link>
           </Box>
         </Box>

@@ -33,7 +33,6 @@ import {
 } from "../../services/api";
 import AddCategoryModal from "../categories/AddCategoryModal";
 
-// Google Pay style icons
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
@@ -45,7 +44,7 @@ import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRigh
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 
-// Slide up transition like Google Pay
+
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -229,7 +228,6 @@ const AddTransactionModal = ({
     return name.substring(0, 2);
   };
 
-  // Google Pay style avatar colors
   const getAvatarColors = (category) => {
     if (!category)
       return {
@@ -239,7 +237,6 @@ const AddTransactionModal = ({
 
     const type = category.type;
 
-    // Google Pay style color mapping
     if (type === "income") {
       return {
         bgColor: alpha(theme.palette.success.main, 0.12),
@@ -272,20 +269,20 @@ const AddTransactionModal = ({
     const newErrors = {};
 
     if (!formData.amount) {
-      newErrors.amount = t("Amount is required");
+      newErrors.amount = t("amount_is_required");
     } else if (
       isNaN(parseFloat(formData.amount)) ||
       parseFloat(formData.amount) <= 0
     ) {
-      newErrors.amount = t("Amount must be a positive number");
+      newErrors.amount = t("amount_must_be_a_positive_number");
     }
 
     if (!formData.category) {
-      newErrors.category = t("Category is required");
+      newErrors.category = t("category_is_required");
     }
 
     if (!formData.date) {
-      newErrors.date = t("Date is required");
+      newErrors.date = t("date_is_required");
     }
 
     setErrors(newErrors);
@@ -397,7 +394,7 @@ const AddTransactionModal = ({
               fontSize: "1.125rem",
             }}
           >
-            {isEditing ? t("Edit Transaction") : t("Add Transaction")}
+            {isEditing ? t("edit_transaction") : t("add_transaction")}
           </Typography>
           <Box sx={{ width: 40 }} /> {/* Spacer for alignment */}
         </Box>
@@ -412,7 +409,7 @@ const AddTransactionModal = ({
           }}
         >
           <Chip
-            label={t("Expense")}
+            label={t("expense")}
             icon={<RemoveRoundedIcon fontSize="small" />}
             onClick={() => handleTypeChange("expense")}
             color={formData.type === "expense" ? "error" : "default"}
@@ -435,7 +432,7 @@ const AddTransactionModal = ({
             }}
           />
           <Chip
-            label={t("Income")}
+            label={t("income")}
             icon={<AddRoundedIcon fontSize="small" />}
             onClick={() => handleTypeChange("income")}
             color={formData.type === "income" ? "success" : "default"}
@@ -579,7 +576,7 @@ const AddTransactionModal = ({
                   fontSize: "1rem",
                 }}
               >
-                {selectedCategory ? selectedCategory.name : t("Category")}
+                {selectedCategory ? selectedCategory.name : t("category")}
               </Typography>
             }
             secondary={
@@ -729,9 +726,9 @@ const AddTransactionModal = ({
           {isSubmitting ? (
             <CircularProgress size={24} color="inherit" />
           ) : isEditing ? (
-            t("Update")
+            t("update")
           ) : (
-            t("Save")
+            t("save")
           )}
         </Button>
       </Box>
@@ -785,7 +782,7 @@ const AddTransactionModal = ({
               color: theme.palette.text.secondary,
             }}
           >
-            {t("No categories available")}
+            {t("no_categories_available")}
           </Typography>
         </Box>
       ) : (
@@ -864,7 +861,7 @@ const AddTransactionModal = ({
                     color: theme.palette.primary.main,
                   }}
                 >
-                  {t("Add New Category")}
+                  {t("add_new_category")}
                 </Typography>
               }
             />
@@ -901,7 +898,7 @@ const AddTransactionModal = ({
             fontSize: "1.125rem",
           }}
         >
-          {t("Select Date")}
+          {t("select_date")}
         </Typography>
       </Box>
 

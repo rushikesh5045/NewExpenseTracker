@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
         flexDirection: "column",
       }}
     >
-      {/* Main content area with Google Pay styling */}
+      
       <Box
         component="main"
         sx={{
@@ -30,7 +30,7 @@ const Layout = ({ children }) => {
           maxWidth: "100%",
           margin: "0 auto",
           px: { xs: 0, sm: 2 },
-          // Content max-width like Google Pay
+         
           "& > *": {
             maxWidth: { sm: "600px", md: "800px" },
             mx: { sm: "auto" },

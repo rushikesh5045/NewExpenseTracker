@@ -20,7 +20,6 @@ import { Link as RouterLink, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { validateResetToken, resetPassword } from "../services/api";
 
-// Google-style rounded icons
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
@@ -94,9 +93,9 @@ const ResetPassword = () => {
 
   // Get text based on password strength
   const getPasswordStrengthText = () => {
-    if (passwordStrength < 50) return t("Weak");
-    if (passwordStrength < 100) return t("Medium");
-    return t("Strong");
+    if (passwordStrength < 50) return t("weak");
+    if (passwordStrength < 100) return t("medium");
+    return t("strong");
   };
 
   const handleSubmit = async (e) => {
@@ -104,17 +103,17 @@ const ResetPassword = () => {
 
     // Validate passwords
     if (!password) {
-      setError(t("Password is required"));
+      setError(t("password_is_required"));
       return;
     }
 
     if (password.length < 8) {
-      setError(t("Password must be at least 8 characters"));
+      setError(t("password_must_be_at_least_8_characters"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(t("Passwords do not match"));
+      setError(t("passwords_do_not_match"));
       return;
     }
 
@@ -124,14 +123,13 @@ const ResetPassword = () => {
       await resetPassword(token, password);
       setSuccess(true);
 
-      // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate("/login");
       }, 3000);
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          t("Failed to reset password. Please try again.")
+          t("failed_to_reset_password_please_try_again")
       );
     } finally {
       setLoading(false);
@@ -177,7 +175,7 @@ const ResetPassword = () => {
                 fontWeight: 400,
               }}
             >
-              {t("Validating your reset link...")}
+              {t("validating_your_reset_link")}
             </Typography>
             <Typography
               variant="body2"
@@ -187,7 +185,7 @@ const ResetPassword = () => {
                 fontFamily: '"Google Sans Text", "Roboto", sans-serif',
               }}
             >
-              {t("This will only take a moment")}
+              {t("this_will_only_take_a_moment")}
             </Typography>
           </Box>
         </Container>
@@ -253,7 +251,7 @@ const ResetPassword = () => {
                   mb: 1,
                 }}
               >
-                {t("Invalid or expired link")}
+                {t("invalid_or_expired_link")}
               </Typography>
             </Box>
 
@@ -278,7 +276,7 @@ const ResetPassword = () => {
                   color: theme.palette.text.primary,
                 }}
               >
-                {t("This password reset link is invalid or has expired.")}
+                {t("this_password_reset_link_is_invalid_or_has_expired")}
               </Typography>
             </Box>
 
@@ -296,7 +294,7 @@ const ResetPassword = () => {
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 500,
                   fontSize: "0.9375rem",
-                  borderRadius: "24px", // Google Pay's pill-shaped buttons
+                  borderRadius: "24px",
                   boxShadow: "none",
                   "&:hover": {
                     boxShadow:
@@ -304,7 +302,7 @@ const ResetPassword = () => {
                   },
                 }}
               >
-                {t("Request new reset link")}
+                {t("request_new_reset_link")}
               </Button>
 
               <Box sx={{ mt: 3 }}>
@@ -323,7 +321,7 @@ const ResetPassword = () => {
                     },
                   }}
                 >
-                  {t("Back to sign in")}
+                  {t("back_to_sign_in")}
                 </Button>
               </Box>
             </Box>
@@ -390,7 +388,7 @@ const ResetPassword = () => {
                 mb: 1,
               }}
             >
-              {t("Reset your password")}
+              {t("reset_your_password")}
             </Typography>
             {!success && (
               <Typography
@@ -400,7 +398,7 @@ const ResetPassword = () => {
                   color: "text.secondary",
                 }}
               >
-                {t("Create a new password for your account")}
+                {t("create_a_new_password_for_your_account")}
               </Typography>
             )}
           </Box>
@@ -480,7 +478,7 @@ const ResetPassword = () => {
                   required
                   fullWidth
                   name="password"
-                  label={t("New password")}
+                  label={t("new_password")}
                   type={showPassword ? "text" : "password"}
                   id="password"
                   autoComplete="new-password"
@@ -550,7 +548,7 @@ const ResetPassword = () => {
                           color: "text.secondary",
                         }}
                       >
-                        {t("Password strength")}
+                        {t("password_strength")}
                       </Typography>
                       <Typography
                         variant="caption"
@@ -584,7 +582,7 @@ const ResetPassword = () => {
                   required
                   fullWidth
                   name="confirmPassword"
-                  label={t("Confirm new password")}
+                  label={t("confirm_new_password")}
                   type={showConfirmPassword ? "text" : "password"}
                   id="confirmPassword"
                   autoComplete="new-password"
@@ -662,7 +660,7 @@ const ResetPassword = () => {
                             color: theme.palette.success.main,
                           }}
                         >
-                          {t("Passwords match")}
+                          {t("passwords_match")}
                         </Typography>
                       </>
                     ) : (
@@ -680,7 +678,7 @@ const ResetPassword = () => {
                             color: theme.palette.error.main,
                           }}
                         >
-                          {t("Passwords don't match")}
+                          {t("passwords_don_t_match")}
                         </Typography>
                       </>
                     )}
@@ -701,7 +699,7 @@ const ResetPassword = () => {
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
                     fontWeight: 500,
                     fontSize: "0.9375rem",
-                    borderRadius: "24px", // Google Pay's pill-shaped buttons
+                    borderRadius: "24px",
                     boxShadow: "none",
                     "&:hover": {
                       boxShadow:
@@ -723,7 +721,7 @@ const ResetPassword = () => {
                         color="inherit"
                         sx={{ mr: 1 }}
                       />
-                      {t("Resetting...")}
+                      {t("resetting")}
                     </Box>
                   ) : (
                     t("Reset password")
@@ -749,7 +747,7 @@ const ResetPassword = () => {
                       },
                     }}
                   >
-                    {t("Back to sign in")}
+                    {t("back_to_sign_in")}
                   </Button>
                 </Box>
               </Box>

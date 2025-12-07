@@ -42,7 +42,7 @@ const LanguageSelector = () => {
         startIcon={<LanguageRoundedIcon />}
         endIcon={<KeyboardArrowDownRoundedIcon />}
         sx={{
-          borderRadius: "20px", // Google Pay's pill-shaped buttons
+          borderRadius: "20px",
           textTransform: "none",
           fontFamily: '"Google Sans", "Roboto", sans-serif',
           fontWeight: 500,
@@ -65,10 +65,10 @@ const LanguageSelector = () => {
         PaperProps={{
           elevation: 2,
           sx: {
-            borderRadius: 3, // More rounded corners for Google Pay style
+            borderRadius: 3,
             mt: 1,
             minWidth: 180,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.2)", // Google Pay's shadow style
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
             border: "1px solid rgba(0,0,0,0.08)",
           },
         }}

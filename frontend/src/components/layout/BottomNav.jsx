@@ -9,7 +9,6 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-// Use rounded Material Icons for Google Pay style
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import InsightsRoundedIcon from "@mui/icons-material/InsightsRounded";
 import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
@@ -88,7 +87,7 @@ const BottomNav = () => {
         }}
       >
         <BottomNavigationAction
-          label={t("Home")}
+          label={t("home")}
           icon={
             <Box
               sx={{
@@ -118,7 +117,7 @@ const BottomNav = () => {
           }
         />
         <BottomNavigationAction
-          label={t("Analytics")}
+          label={t("analytics")}
           icon={
             <Box
               sx={{
@@ -148,7 +147,7 @@ const BottomNav = () => {
           }
         />
         <BottomNavigationAction
-          label={t("Settings")}
+          label={t("settings")}
           icon={
             <Box
               sx={{

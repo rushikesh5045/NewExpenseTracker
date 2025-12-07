@@ -51,7 +51,6 @@ import {
 } from "chart.js";
 import { Pie, Bar, Line } from "react-chartjs-2";
 
-// Google-style rounded icons
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
@@ -304,7 +303,7 @@ const Statistics = () => {
   // Prepare data for Income vs Expense pie chart
   const prepareIncomeExpenseData = () => {
     return {
-      labels: [t("Income"), t("Expense")],
+      labels: [t("income"), t("expense")],
       datasets: [
         {
           data: [summary.income, summary.expense],
@@ -459,7 +458,7 @@ const Statistics = () => {
       labels,
       datasets: [
         {
-          label: t("Income"),
+          label: t("income"),
           data: incomeData,
           borderColor: theme.palette.success.main,
           backgroundColor: alpha(theme.palette.success.main, 0.2),
@@ -468,7 +467,7 @@ const Statistics = () => {
           borderWidth: 2,
         },
         {
-          label: t("Expense"),
+          label: t("expense"),
           data: expenseData,
           borderColor: theme.palette.error.main,
           backgroundColor: alpha(theme.palette.error.main, 0.2),
@@ -514,7 +513,7 @@ const Statistics = () => {
       labels,
       datasets: [
         {
-          label: t("Expense Amount"),
+          label: t("expense_amount"),
           data,
           backgroundColor: alpha(theme.palette.error.main, 0.8),
           borderColor: theme.palette.error.main,
@@ -531,7 +530,7 @@ const Statistics = () => {
     return ((summary.income - summary.expense) / summary.income) * 100;
   };
 
-  // Chart options - Google Pay style
+  // Chart options
   const pieChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -570,7 +569,7 @@ const Statistics = () => {
         },
       },
     },
-    cutout: "60%", // Donut style like Google Pay
+    cutout: "60%",
   };
 
   const lineChartOptions = {
@@ -742,7 +741,7 @@ const Statistics = () => {
               fontSize: "1.5rem",
             }}
           >
-            {t("Analytics")}
+            {t("analytics")}
           </Typography>
           <Typography
             variant="body2"
@@ -751,13 +750,13 @@ const Statistics = () => {
               fontFamily: '"Google Sans Text", "Roboto", sans-serif',
             }}
           >
-            {t("Financial insights")}
+            {t("financial_insights")}
           </Typography>
         </Box>
         <LanguageSelector />
       </Box>
 
-      {/* View Type Tabs - Google Pay style */}
+      {/* View Type Tabs */}
       <Paper
         elevation={0}
         sx={{
@@ -788,13 +787,13 @@ const Statistics = () => {
             },
           }}
         >
-          <Tab value="day" label={t("Day")} />
-          <Tab value="month" label={t("Month")} />
-          <Tab value="year" label={t("Year")} />
+          <Tab value="day" label={t("day")} />
+          <Tab value="month" label={t("month")} />
+          <Tab value="year" label={t("year")} />
         </Tabs>
       </Paper>
 
-      {/* Date Navigator - Google Pay style */}
+      {/* Date Navigator */}
       <Paper
         elevation={0}
         sx={{
@@ -866,7 +865,7 @@ const Statistics = () => {
         </IconButton>
       </Paper>
 
-      {/* Today Button and Filters Toggle - Google Pay style */}
+      {/* Today Button and Filters Toggle */}
       <Box
         sx={{
           display: "flex",
@@ -889,7 +888,7 @@ const Statistics = () => {
               fontWeight: 500,
             }}
           >
-            {t("Today")}
+            {t("today")}
           </Button>
         )}
 
@@ -907,11 +906,11 @@ const Statistics = () => {
             fontWeight: 500,
           }}
         >
-          {t("Filters")}
+          {t("filters")}
         </Button>
       </Box>
 
-      {/* Filters - Google Pay style */}
+      {/* Filters */}
       <Fade in={showFilters}>
         <Paper
           elevation={0}
@@ -936,7 +935,7 @@ const Statistics = () => {
             }}
           >
             <FilterListRoundedIcon fontSize="small" sx={{ mr: 1 }} />
-            {t("Filters")}
+            {t("filters")}
           </Typography>
 
           <Box
@@ -957,7 +956,7 @@ const Statistics = () => {
                   mb: 1,
                 }}
               >
-                {t("Transaction Type")}
+                {t("transaction_type")}
               </Typography>
               <ToggleButtonGroup
                 value={typeFilter}
@@ -981,7 +980,7 @@ const Statistics = () => {
                 }}
               >
                 <ToggleButton value="all" aria-label="all transactions">
-                  {t("All")}
+                  {t("all")}
                 </ToggleButton>
                 <ToggleButton
                   value="income"
@@ -993,7 +992,7 @@ const Statistics = () => {
                     },
                   }}
                 >
-                  {t("Income")}
+                  {t("income")}
                 </ToggleButton>
                 <ToggleButton
                   value="expense"
@@ -1005,7 +1004,7 @@ const Statistics = () => {
                     },
                   }}
                 >
-                  {t("Expense")}
+                  {t("expense")}
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
@@ -1021,7 +1020,7 @@ const Statistics = () => {
                   mb: 1,
                 }}
               >
-                {t("Category")}
+                {t("category")}
               </Typography>
               <FormControl fullWidth size="small">
                 <Select
@@ -1054,7 +1053,7 @@ const Statistics = () => {
                       borderRadius: 1,
                     }}
                   >
-                    {t("All Categories")}
+                    {t("all_categories")}
                   </MenuItem>
                   {categories.map((category) => (
                     <MenuItem
@@ -1081,7 +1080,7 @@ const Statistics = () => {
         </Box>
       ) : (
         <>
-          {/* Summary Cards - Google Pay style */}
+          {/* Summary Cards */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             {/* Income Card */}
             <Grid item xs={12} sm={4}>
@@ -1133,7 +1132,7 @@ const Statistics = () => {
                     fontFamily: '"Google Sans Text", "Roboto", sans-serif',
                   }}
                 >
-                  {t("Income")}
+                  {t("income")}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -1198,7 +1197,7 @@ const Statistics = () => {
                     fontFamily: '"Google Sans Text", "Roboto", sans-serif',
                   }}
                 >
-                  {t("Expense")}
+                  {t("expense")}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -1272,7 +1271,7 @@ const Statistics = () => {
                     fontFamily: '"Google Sans Text", "Roboto", sans-serif',
                   }}
                 >
-                  {t("Savings Rate")}
+                  {t("savings_rate")}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -1290,7 +1289,7 @@ const Statistics = () => {
             </Grid>
           </Grid>
 
-          {/* Charts - Google Pay style */}
+          {/* Charts */}
           <Grid container spacing={3}>
             {/* Income vs Expense Pie Chart */}
             <Grid item xs={12} md={6}>
@@ -1305,7 +1304,7 @@ const Statistics = () => {
                 }}
               >
                 <CardHeader
-                  title={t("Income vs Expense")}
+                  title={t("income_vs_expense")}
                   titleTypographyProps={{
                     variant: "subtitle1",
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
@@ -1366,7 +1365,7 @@ const Statistics = () => {
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                         }}
                       >
-                        {t("No data available")}
+                        {t("no_data_available")}
                       </Typography>
                     </Box>
                   ) : (
@@ -1392,7 +1391,7 @@ const Statistics = () => {
                 }}
               >
                 <CardHeader
-                  title={t("Expense by Category")}
+                  title={t("expense_by_category")}
                   titleTypographyProps={{
                     variant: "subtitle1",
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
@@ -1453,7 +1452,7 @@ const Statistics = () => {
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                         }}
                       >
-                        {t("No expense data available")}
+                        {t("no_expense_data_available")}
                       </Typography>
                     </Box>
                   ) : (
@@ -1478,7 +1477,7 @@ const Statistics = () => {
                 }}
               >
                 <CardHeader
-                  title={t("Income and Expense Trend")}
+                  title={t("income_and_expense_trend")}
                   titleTypographyProps={{
                     variant: "subtitle1",
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
@@ -1539,7 +1538,7 @@ const Statistics = () => {
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                         }}
                       >
-                        {t("No trend data available")}
+                        {t("no_trend_data_available")}
                       </Typography>
                     </Box>
                   ) : (
@@ -1564,7 +1563,7 @@ const Statistics = () => {
                 }}
               >
                 <CardHeader
-                  title={t("Top Expense Categories")}
+                  title={t("top_expense_categories")}
                   titleTypographyProps={{
                     variant: "subtitle1",
                     fontFamily: '"Google Sans", "Roboto", sans-serif',
@@ -1625,7 +1624,7 @@ const Statistics = () => {
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                         }}
                       >
-                        {t("No expense data available")}
+                        {t("no_expense_data_available")}
                       </Typography>
                     </Box>
                   ) : (

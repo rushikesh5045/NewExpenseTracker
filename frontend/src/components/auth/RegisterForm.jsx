@@ -25,7 +25,6 @@ import {
   LinearProgress,
 } from "@mui/material";
 
-// Google-style icons
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
@@ -51,16 +50,16 @@ const RegisterForm = ({ onRegister, loading, error }) => {
       confirmPassword: "",
     },
     validationSchema: Yup.object({
-      name: Yup.string().required(t("Name is required")),
+      name: Yup.string().required(t("name_is_required")),
       email: Yup.string()
-        .email(t("Invalid email address"))
-        .required(t("Email is required")),
+        .email(t("invalid_email_address"))
+        .required(t("email_is_required")),
       password: Yup.string()
-        .min(8, t("Password must be at least 8 characters"))
-        .required(t("Password is required")),
+        .min(8, t("password_must_be_at_least_8_characters"))
+        .required(t("password_is_required")),
       confirmPassword: Yup.string()
-        .oneOf([Yup.ref("password"), null], t("Passwords must match"))
-        .required(t("Confirm password is required")),
+        .oneOf([Yup.ref("password"), null], t("passwords_must_match"))
+        .required(t("confirm_password_is_required")),
     }),
     onSubmit: (values) => {
       onRegister(values);
@@ -110,9 +109,9 @@ const RegisterForm = ({ onRegister, loading, error }) => {
 
   // Get text based on password strength
   const getPasswordStrengthText = () => {
-    if (passwordStrength < 50) return t("Weak");
-    if (passwordStrength < 100) return t("Medium");
-    return t("Strong");
+    if (passwordStrength < 50) return t("weak");
+    if (passwordStrength < 100) return t("medium");
+    return t("strong");
   };
 
   return (
@@ -163,7 +162,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                 mb: 1,
               }}
             >
-              {t("Create account")}
+              {t("create_account")}
             </Typography>
             <Typography
               variant="body2"
@@ -172,7 +171,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                 color: "text.secondary",
               }}
             >
-              {t("to start managing your finances")}
+              {t("to_start_managing_your_finances")}
             </Typography>
           </Box>
 
@@ -202,13 +201,13 @@ const RegisterForm = ({ onRegister, loading, error }) => {
               fullWidth
               id="name"
               name="name"
-              label={t("Name")}
+              label={t("name")}
               value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.name && Boolean(formik.errors.name)}
               helperText={formik.touched.name && formik.errors.name}
-              placeholder={t("Enter your name")}
+              placeholder={t("enter_your_name")}
               variant="outlined"
               autoComplete="name"
               InputProps={{
@@ -250,13 +249,13 @@ const RegisterForm = ({ onRegister, loading, error }) => {
               fullWidth
               id="email"
               name="email"
-              label={t("Email")}
+              label={t("email")}
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
-              placeholder={t("Enter your email")}
+              placeholder={t("enter_your_email")}
               variant="outlined"
               autoComplete="email"
               InputProps={{
@@ -298,14 +297,14 @@ const RegisterForm = ({ onRegister, loading, error }) => {
               fullWidth
               id="password"
               name="password"
-              label={t("Password")}
+              label={t("password")}
               type={showPassword ? "text" : "password"}
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
-              placeholder={t("Create a password")}
+              placeholder={t("create_a_password")}
               variant="outlined"
               autoComplete="new-password"
               InputProps={{
@@ -378,7 +377,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                       color: "text.secondary",
                     }}
                   >
-                    {t("Password strength")}
+                    {t("password_strength")}
                   </Typography>
                   <Typography
                     variant="caption"
@@ -411,7 +410,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
               fullWidth
               id="confirmPassword"
               name="confirmPassword"
-              label={t("Confirm Password")}
+              label={t("confirm_password")}
               type={showConfirmPassword ? "text" : "password"}
               value={formik.values.confirmPassword}
               onChange={formik.handleChange}
@@ -423,7 +422,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
               helperText={
                 formik.touched.confirmPassword && formik.errors.confirmPassword
               }
-              placeholder={t("Confirm your password")}
+              placeholder={t("confirm_your_password")}
               variant="outlined"
               autoComplete="new-password"
               InputProps={{
@@ -497,7 +496,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                         color: theme.palette.success.main,
                       }}
                     >
-                      {t("Passwords match")}
+                      {t("passwords_match")}
                     </Typography>
                   </>
                 ) : (
@@ -514,7 +513,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                         color: theme.palette.error.main,
                       }}
                     >
-                      {t("Passwords don't match")}
+                      {t("passwords_don_t_match")}
                     </Typography>
                   </>
                 )}
@@ -536,7 +535,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
               fontFamily: '"Google Sans", "Roboto", sans-serif',
               fontWeight: 500,
               fontSize: "0.9375rem",
-              borderRadius: "24px", // Even more rounded for Google Pay's latest style
+              borderRadius: "24px",
               boxShadow: "none",
               "&:hover": {
                 boxShadow:
@@ -556,10 +555,10 @@ const RegisterForm = ({ onRegister, loading, error }) => {
             {loading ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
-                {t("Creating account...")}
+                {t("creating_account")}
               </Box>
             ) : (
-              t("Create account")
+              t("create_account")
             )}
           </Button>
 
@@ -595,7 +594,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                 color: "text.secondary",
               }}
             >
-              {t("Already have an account?")}{" "}
+              {t("already_have_an_account")}{" "}
               <Link to="/login" style={{ textDecoration: "none" }}>
                 <Typography
                   component="span"
@@ -630,7 +629,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                 mb: 0.5,
               }}
             >
-              {t("By creating an account, you agree to our")}
+              {t("by_creating_an_account,_you_agree_to_our")}
             </Typography>
             <Box
               sx={{
@@ -651,7 +650,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                     },
                   }}
                 >
-                  {t("Terms of Service")}
+                  {t("terms_of_service")}
                 </Typography>
               </Link>
               <Typography
@@ -674,7 +673,7 @@ const RegisterForm = ({ onRegister, loading, error }) => {
                     },
                   }}
                 >
-                  {t("Privacy Policy")}
+                  {t("privacy_policy")}
                 </Typography>
               </Link>
             </Box>

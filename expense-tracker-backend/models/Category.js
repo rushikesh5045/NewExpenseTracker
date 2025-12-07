@@ -15,12 +15,12 @@ const categorySchema = new mongoose.Schema({
   color: {
     type: String,
     required: true,
-    default: "#6200ee", // Default Material You primary color
+    default: "#6200ee",
   },
   icon: {
     type: String,
     required: true,
-    default: "category", // Default Material icon name
+    default: "category",
   },
   isDefault: {
     type: Boolean,

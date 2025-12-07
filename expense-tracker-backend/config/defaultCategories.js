@@ -3,35 +3,35 @@ const defaultCategories = [
   {
     name: "Salary",
     type: "income",
-    color: "#4CAF50", // Green
+    color: "#4CAF50",
     icon: "payments",
     isDefault: true,
   },
   {
     name: "Business",
     type: "income",
-    color: "#2196F3", // Blue
+    color: "#2196F3",
     icon: "business",
     isDefault: true,
   },
   {
     name: "Investments",
     type: "income",
-    color: "#9C27B0", // Purple
+    color: "#9C27B0",
     icon: "trending_up",
     isDefault: true,
   },
   {
     name: "Gifts",
     type: "income",
-    color: "#E91E63", // Pink
+    color: "#E91E63",
     icon: "card_giftcard",
     isDefault: true,
   },
   {
     name: "Other Income",
     type: "income",
-    color: "#FF9800", // Orange
+    color: "#FF9800",
     icon: "account_balance",
     isDefault: true,
   },
@@ -40,98 +40,98 @@ const defaultCategories = [
   {
     name: "Food & Dining",
     type: "expense",
-    color: "#FF5722", // Deep Orange
+    color: "#FF5722",
     icon: "restaurant",
     isDefault: true,
   },
   {
     name: "Groceries",
     type: "expense",
-    color: "#8BC34A", // Light Green
+    color: "#8BC34A",
     icon: "shopping_cart",
     isDefault: true,
   },
   {
     name: "Transportation",
     type: "expense",
-    color: "#3F51B5", // Indigo
+    color: "#3F51B5",
     icon: "directions_car",
     isDefault: true,
   },
   {
     name: "Rent/Mortgage",
     type: "expense",
-    color: "#795548", // Brown
+    color: "#795548",
     icon: "home",
     isDefault: true,
   },
   {
     name: "Utilities",
     type: "expense",
-    color: "#607D8B", // Blue Grey
+    color: "#607D8B",
     icon: "power",
     isDefault: true,
   },
   {
     name: "Phone",
     type: "expense",
-    color: "#00BCD4", // Cyan
+    color: "#00BCD4",
     icon: "phone_android",
     isDefault: true,
   },
   {
     name: "Entertainment",
     type: "expense",
-    color: "#673AB7", // Deep Purple
+    color: "#673AB7",
     icon: "movie",
     isDefault: true,
   },
   {
     name: "Shopping",
     type: "expense",
-    color: "#FFC107", // Amber
+    color: "#FFC107",
     icon: "shopping_bag",
     isDefault: true,
   },
   {
     name: "Health & Medical",
     type: "expense",
-    color: "#F44336", // Red
+    color: "#F44336",
     icon: "local_hospital",
     isDefault: true,
   },
   {
     name: "Personal Care",
     type: "expense",
-    color: "#E91E63", // Pink
+    color: "#E91E63",
     icon: "spa",
     isDefault: true,
   },
   {
     name: "Education",
     type: "expense",
-    color: "#009688", // Teal
+    color: "#009688",
     icon: "school",
     isDefault: true,
   },
   {
     name: "Travel",
     type: "expense",
-    color: "#CDDC39", // Lime
+    color: "#CDDC39",
     icon: "flight",
     isDefault: true,
   },
   {
     name: "Gifts & Donations",
     type: "expense",
-    color: "#9C27B0", // Purple
+    color: "#9C27B0",
     icon: "redeem",
     isDefault: true,
   },
   {
     name: "Other Expenses",
     type: "expense",
-    color: "#9E9E9E", // Grey
+    color: "#9E9E9E",
     icon: "more_horiz",
     isDefault: true,
   },

@@ -67,7 +67,7 @@ const Input = ({
           ) : null,
           sx: {
             fontFamily: '"Google Sans Text", "Roboto", sans-serif',
-            borderRadius: 2, // 8px border radius like Google Pay
+            borderRadius: 2,
             "& .MuiOutlinedInput-notchedOutline": {
               borderColor: error ? "#d93025" : "rgba(0, 0, 0, 0.23)",
             },

@@ -20,7 +20,6 @@ import {
   useMediaQuery,
 } from "@mui/material";
 
-// Google-style icons
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
@@ -41,9 +40,9 @@ const LoginForm = ({ onLogin, loading, error }) => {
     },
     validationSchema: Yup.object({
       email: Yup.string()
-        .email(t("Invalid email address"))
-        .required(t("Email is required")),
-      password: Yup.string().required(t("Password is required")),
+        .email(t("invalid_email_address"))
+        .required(t("email_is_required")),
+      password: Yup.string().required(t("password_is_required")),
     }),
     onSubmit: (values) => {
       onLogin(values);
@@ -102,7 +101,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                 mb: 1,
               }}
             >
-              {t("Sign in")}
+              {t("sign_in")}
             </Typography>
             <Typography
               variant="body2"
@@ -111,7 +110,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                 color: "text.secondary",
               }}
             >
-              {t("to continue to your account")}
+              {t("to_continue_to_your_account")}
             </Typography>
           </Box>
 
@@ -140,13 +139,13 @@ const LoginForm = ({ onLogin, loading, error }) => {
               fullWidth
               id="email"
               name="email"
-              label={t("Email")}
+              label={t("email")}
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
-              placeholder={t("Enter your email")}
+              placeholder={t("enter_your_email")}
               variant="outlined"
               autoComplete="email"
               InputProps={{
@@ -187,14 +186,14 @@ const LoginForm = ({ onLogin, loading, error }) => {
               fullWidth
               id="password"
               name="password"
-              label={t("Password")}
+              label={t("password")}
               type={showPassword ? "text" : "password"}
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
-              placeholder={t("Enter your password")}
+              placeholder={t("enter_your_password")}
               variant="outlined"
               autoComplete="current-password"
               InputProps={{
@@ -265,7 +264,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                     display: "inline-block",
                   }}
                 >
-                  {t("Forgot password?")}
+                  {t("forgot_password")}
                 </Typography>
               </Link>
             </Box>
@@ -285,7 +284,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
               fontFamily: '"Google Sans", "Roboto", sans-serif',
               fontWeight: 500,
               fontSize: "0.9375rem",
-              borderRadius: "24px", // Even more rounded for Google Pay's latest style
+              borderRadius: "24px",
               boxShadow: "none",
               "&:hover": {
                 boxShadow:
@@ -305,10 +304,10 @@ const LoginForm = ({ onLogin, loading, error }) => {
             {loading ? (
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
-                {t("Signing in...")}
+                {t("signing_in")}
               </Box>
             ) : (
-              t("Sign in")
+              t("sign_in")
             )}
           </Button>
 
@@ -344,7 +343,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                 color: "text.secondary",
               }}
             >
-              {t("Don't have an account?")}{" "}
+              {t("don_t_have_an_account")}{" "}
               <Link to="/register" style={{ textDecoration: "none" }}>
                 <Typography
                   component="span"
@@ -361,7 +360,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                     display: "inline-block",
                   }}
                 >
-                  {t("Create account")}
+                  {t("create_account")}
                 </Typography>
               </Link>
             </Typography>
@@ -379,7 +378,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                 mb: 0.5,
               }}
             >
-              {t("By continuing, you agree to our")}
+              {t("by_continuing,_you_agree_to_our")}
             </Typography>
             <Box
               sx={{
@@ -400,7 +399,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                     },
                   }}
                 >
-                  {t("Terms of Service")}
+                  {t("terms_of_service")}
                 </Typography>
               </Link>
               <Typography
@@ -423,7 +422,7 @@ const LoginForm = ({ onLogin, loading, error }) => {
                     },
                   }}
                 >
-                  {t("Privacy Policy")}
+                  {t("privacy_policy")}
                 </Typography>
               </Link>
             </Box>

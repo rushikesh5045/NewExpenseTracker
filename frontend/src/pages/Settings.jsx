@@ -26,6 +26,12 @@ import {
   alpha,
   Fade,
   LinearProgress,
+  ToggleButton,
+  ToggleButtonGroup,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -36,7 +42,6 @@ import {
   exportData,
 } from "../services/api";
 
-// Google-style rounded icons
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
@@ -54,6 +59,8 @@ import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import DateRangeRoundedIcon from "@mui/icons-material/DateRangeRounded";
 
 const Settings = () => {
   const { t } = useTranslation();
@@ -89,6 +96,16 @@ const Settings = () => {
     exportData: false,
     changePassword: false,
   });
+
+  // State for export options
+  const [exportOptions, setExportOptions] = useState({
+    rangeType: "month", // 'month', 'year', 'custom'
+    selectedMonth: new Date().getMonth(),
+    selectedYear: new Date().getFullYear(),
+    customStartDate: "",
+    customEndDate: "",
+  });
+  const [exporting, setExporting] = useState(false);
 
   // State for notifications
   const [notification, setNotification] = useState({
@@ -133,9 +150,9 @@ const Settings = () => {
 
   // Get text based on password strength
   const getPasswordStrengthText = () => {
-    if (passwordStrength < 50) return t("Weak");
-    if (passwordStrength < 100) return t("Medium");
-    return t("Strong");
+    if (passwordStrength < 50) return t("weak");
+    if (passwordStrength < 100) return t("medium");
+    return t("strong");
   };
 
   // Handle profile edit toggle
@@ -180,13 +197,13 @@ const Settings = () => {
     const newErrors = {};
 
     if (!profileData.name) {
-      newErrors.name = t("Name is required");
+      newErrors.name = t("name_is_required");
     }
 
     if (!profileData.email) {
-      newErrors.email = t("Email is required");
+      newErrors.email = t("email_is_required");
     } else if (!/\S+@\S+\.\S+/.test(profileData.email)) {
-      newErrors.email = t("Invalid email address");
+      newErrors.email = t("invalid_email_address");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -204,7 +221,7 @@ const Settings = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: t("Profile updated successfully"),
+        message: t("profile_updated_successfully"),
         severity: "success",
       });
 
@@ -214,7 +231,7 @@ const Settings = () => {
       console.error("Error updating profile:", error);
       setNotification({
         open: true,
-        message: error.response?.data?.message || t("Failed to update profile"),
+        message: error.response?.data?.message || t("failed_to_update_profile"),
         severity: "error",
       });
     } finally {
@@ -253,19 +270,19 @@ const Settings = () => {
     const newErrors = {};
 
     if (!passwordData.currentPassword) {
-      newErrors.currentPassword = t("Current password is required");
+      newErrors.currentPassword = t("current_password_is_required");
     }
 
     if (!passwordData.newPassword) {
-      newErrors.newPassword = t("New password is required");
+      newErrors.newPassword = t("new_password_is_required");
     } else if (passwordData.newPassword.length < 8) {
-      newErrors.newPassword = t("Password must be at least 8 characters");
+      newErrors.newPassword = t("password_must_be_at_least_8_characters");
     }
 
     if (!passwordData.confirmPassword) {
-      newErrors.confirmPassword = t("Please confirm your new password");
+      newErrors.confirmPassword = t("please_confirm_your_new_password");
     } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-      newErrors.confirmPassword = t("Passwords do not match");
+      newErrors.confirmPassword = t("passwords_do_not_match");
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -280,7 +297,7 @@ const Settings = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: t("Password changed successfully"),
+        message: t("password_changed_successfully"),
         severity: "success",
       });
 
@@ -298,7 +315,7 @@ const Settings = () => {
       setNotification({
         open: true,
         message:
-          error.response?.data?.message || t("Failed to change password"),
+          error.response?.data?.message || t("failed_to_change_password"),
         severity: "error",
       });
     } finally {
@@ -327,19 +344,78 @@ const Settings = () => {
   // Handle export data
   const handleExport = async (format) => {
     try {
-      const response = await exportData(format);
+      setExporting(true);
+
+      // Calculate date range based on export options
+      let startDate, endDate;
+
+      if (exportOptions.rangeType === "month") {
+        // Get start and end of selected month
+        startDate = new Date(
+          exportOptions.selectedYear,
+          exportOptions.selectedMonth,
+          1
+        );
+        endDate = new Date(
+          exportOptions.selectedYear,
+          exportOptions.selectedMonth + 1,
+          0,
+          23,
+          59,
+          59,
+          999
+        );
+      } else if (exportOptions.rangeType === "year") {
+        // Get start and end of selected year
+        startDate = new Date(exportOptions.selectedYear, 0, 1);
+        endDate = new Date(exportOptions.selectedYear, 11, 31, 23, 59, 59, 999);
+      } else if (exportOptions.rangeType === "custom") {
+        // Use custom date range
+        if (!exportOptions.customStartDate || !exportOptions.customEndDate) {
+          setNotification({
+            open: true,
+            message: t("please_select_date_range"),
+            severity: "error",
+          });
+          setExporting(false);
+          return;
+        }
+        startDate = new Date(exportOptions.customStartDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(exportOptions.customEndDate);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      const response = await exportData(format, {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      });
 
       // Create a download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute(
-        "download",
-        `expense-tracker-data.${format.toLowerCase()}`
-      );
+
+      // Generate filename with date range
+      let filename = "expense-tracker";
+      if (exportOptions.rangeType === "month") {
+        const monthName = new Date(
+          exportOptions.selectedYear,
+          exportOptions.selectedMonth
+        ).toLocaleString("en", { month: "short" });
+        filename += `-${monthName}-${exportOptions.selectedYear}`;
+      } else if (exportOptions.rangeType === "year") {
+        filename += `-${exportOptions.selectedYear}`;
+      } else {
+        filename += `-custom-range`;
+      }
+      filename += `.${format.toLowerCase()}`;
+
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
 
       // Close dialog
       handleDialog("exportData", false);
@@ -347,16 +423,18 @@ const Settings = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: t("Data exported successfully"),
+        message: t("data_exported_successfully"),
         severity: "success",
       });
     } catch (error) {
       console.error("Error exporting data:", error);
       setNotification({
         open: true,
-        message: t("Failed to export data"),
+        message: t("failed_to_export_data"),
         severity: "error",
       });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -368,13 +446,12 @@ const Settings = () => {
       // Logout user
       logout();
 
-      // Redirect to login page
       // This will happen automatically due to the protected route
     } catch (error) {
       console.error("Error deleting account:", error);
       setNotification({
         open: true,
-        message: t("Failed to delete account"),
+        message: t("failed_to_delete_account"),
         severity: "error",
       });
 
@@ -391,7 +468,7 @@ const Settings = () => {
       // Show success notification
       setNotification({
         open: true,
-        message: t("All data cleared successfully"),
+        message: t("all_data_cleared_successfully"),
         severity: "success",
       });
 
@@ -401,7 +478,7 @@ const Settings = () => {
       console.error("Error clearing data:", error);
       setNotification({
         open: true,
-        message: t("Failed to clear data"),
+        message: t("failed_to_clear_data"),
         severity: "error",
       });
 
@@ -439,11 +516,11 @@ const Settings = () => {
             fontSize: "1.5rem",
           }}
         >
-          {t("Settings")}
+          {t("settings")}
         </Typography>
       </Box>
 
-      {/* Profile Section - Google Pay style */}
+      {/* Profile Section */}
       <Paper
         elevation={0}
         sx={{
@@ -470,7 +547,7 @@ const Settings = () => {
               fontSize: "1.125rem",
             }}
           >
-            {t("Account")}
+            {t("account")}
           </Typography>
         </Box>
 
@@ -485,7 +562,7 @@ const Settings = () => {
                 mb: 2,
               }}
             >
-              {t("Edit profile")}
+              {t("edit_profile")}
             </Typography>
 
             <TextField
@@ -493,7 +570,7 @@ const Settings = () => {
               margin="normal"
               id="name"
               name="name"
-              label={t("Name")}
+              label={t("name")}
               value={profileData.name}
               onChange={handleProfileChange}
               error={!!errors.name}
@@ -534,7 +611,7 @@ const Settings = () => {
               margin="normal"
               id="email"
               name="email"
-              label={t("Email")}
+              label={t("email")}
               type="email"
               value={profileData.email}
               onChange={handleProfileChange}
@@ -583,7 +660,7 @@ const Settings = () => {
                   borderRadius: "20px",
                 }}
               >
-                {t("Cancel")}
+                {t("cancel")}
               </Button>
               <Button
                 onClick={handleSaveProfile}
@@ -609,7 +686,7 @@ const Settings = () => {
                   },
                 }}
               >
-                {savingProfile ? t("Saving...") : t("Save")}
+                {savingProfile ? t("saving") : t("save")}
               </Button>
             </Box>
           </Box>
@@ -648,8 +725,8 @@ const Settings = () => {
                 <SecurityRoundedIcon />
               </ListItemIcon>
               <ListItemText
-                primary={t("Password")}
-                secondary={t("Change your password")}
+                primary={t("password")}
+                secondary={t("change_your_password")}
                 primaryTypographyProps={{
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 400,
@@ -687,7 +764,7 @@ const Settings = () => {
         )}
       </Paper>
 
-      {/* Data Management Section - Google Pay style */}
+      {/* Data Management Section */}
       <Paper
         elevation={0}
         sx={{
@@ -713,7 +790,7 @@ const Settings = () => {
               fontSize: "1.125rem",
             }}
           >
-            {t("Data management")}
+            {t("data_management")}
           </Typography>
         </Box>
 
@@ -723,8 +800,8 @@ const Settings = () => {
               <FileDownloadRoundedIcon />
             </ListItemIcon>
             <ListItemText
-              primary={t("Export data")}
-              secondary={t("Download your data in CSV or PDF format")}
+              primary={t("export_data")}
+              secondary={t("download_your_data_in_csv_or_pdf_format")}
               primaryTypographyProps={{
                 fontFamily: '"Google Sans", "Roboto", sans-serif',
                 fontWeight: 400,
@@ -743,8 +820,8 @@ const Settings = () => {
               <DeleteForeverRoundedIcon />
             </ListItemIcon>
             <ListItemText
-              primary={t("Clear all data")}
-              secondary={t("Delete all your transactions and categories")}
+              primary={t("clear_all_data")}
+              secondary={t("delete_all_your_transactions_and_categories")}
               primaryTypographyProps={{
                 fontFamily: '"Google Sans", "Roboto", sans-serif',
                 fontWeight: 400,
@@ -758,7 +835,7 @@ const Settings = () => {
         </List>
       </Paper>
 
-      {/* Change Password Dialog - Google Pay style */}
+      {/* Change Password Dialog */}
       <Dialog
         open={dialogs.changePassword}
         onClose={() => handleDialog("changePassword", false)}
@@ -780,7 +857,7 @@ const Settings = () => {
             fontSize: "1.25rem",
           }}
         >
-          {t("Change password")}
+          {t("change_password")}
         </DialogTitle>
 
         <DialogContent sx={{ px: 3, pt: 1, pb: 3 }}>
@@ -789,7 +866,7 @@ const Settings = () => {
             margin="normal"
             id="currentPassword"
             name="currentPassword"
-            label={t("Current password")}
+            label={t("current_password")}
             type={showPassword.current ? "text" : "password"}
             value={passwordData.currentPassword}
             onChange={handlePasswordChange}
@@ -846,7 +923,7 @@ const Settings = () => {
             margin="normal"
             id="newPassword"
             name="newPassword"
-            label={t("New password")}
+            label={t("new_password")}
             type={showPassword.new ? "text" : "password"}
             value={passwordData.newPassword}
             onChange={handlePasswordChange}
@@ -916,7 +993,7 @@ const Settings = () => {
                     color: "text.secondary",
                   }}
                 >
-                  {t("Password strength")}
+                  {t("password_strength")}
                 </Typography>
                 <Typography
                   variant="caption"
@@ -949,7 +1026,7 @@ const Settings = () => {
             margin="normal"
             id="confirmPassword"
             name="confirmPassword"
-            label={t("Confirm new password")}
+            label={t("confirm_new_password")}
             type={showPassword.confirm ? "text" : "password"}
             value={passwordData.confirmPassword}
             onChange={handlePasswordChange}
@@ -1018,7 +1095,7 @@ const Settings = () => {
                       color: theme.palette.success.main,
                     }}
                   >
-                    {t("Passwords match")}
+                    {t("passwords_match")}
                   </Typography>
                 </>
               ) : (
@@ -1035,7 +1112,7 @@ const Settings = () => {
                       color: theme.palette.error.main,
                     }}
                   >
-                    {t("Passwords don't match")}
+                    {t("passwords_don_t_match")}
                   </Typography>
                 </>
               )}
@@ -1054,7 +1131,7 @@ const Settings = () => {
               borderRadius: "20px",
             }}
           >
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleChangePassword}
@@ -1082,12 +1159,12 @@ const Settings = () => {
               ) : null
             }
           >
-            {changingPassword ? t("Changing...") : t("Change password")}
+            {changingPassword ? t("changing") : t("change_password")}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Account Dialog - Google Pay style */}
+      {/* Delete Account Dialog */}
       <Dialog
         open={dialogs.deleteAccount}
         onClose={() => handleDialog("deleteAccount", false)}
@@ -1146,7 +1223,7 @@ const Settings = () => {
               mt: 1,
             }}
           >
-            {t("Are you sure you want to proceed?")}
+            {t("are_you_sure_you_want_to_proceed")}
           </Typography>
         </DialogContent>
 
@@ -1161,7 +1238,7 @@ const Settings = () => {
               borderRadius: "20px",
             }}
           >
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleDeleteAccount}
@@ -1185,7 +1262,7 @@ const Settings = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Clear Data Dialog - Google Pay style */}
+      {/* Clear Data Dialog */}
       <Dialog
         open={dialogs.clearData}
         onClose={() => handleDialog("clearData", false)}
@@ -1207,7 +1284,7 @@ const Settings = () => {
             fontSize: "1.25rem",
           }}
         >
-          {t("Clear all data")}
+          {t("clear_all_data")}
         </DialogTitle>
 
         <DialogContent sx={{ px: 3, pt: 1, pb: 2 }}>
@@ -1245,7 +1322,7 @@ const Settings = () => {
               mt: 1,
             }}
           >
-            {t("Are you sure you want to clear all data?")}
+            {t("are_you_sure_you_want_to_clear_all_data")}
           </Typography>
         </DialogContent>
 
@@ -1260,7 +1337,7 @@ const Settings = () => {
               borderRadius: "20px",
             }}
           >
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleClearData}
@@ -1279,15 +1356,15 @@ const Settings = () => {
               },
             }}
           >
-            {t("Clear data")}
+            {t("clear_data")}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Export Data Dialog - Google Pay style */}
+      {/* Export Data Dialog with date range options */}
       <Dialog
         open={dialogs.exportData}
-        onClose={() => handleDialog("exportData", false)}
+        onClose={() => !exporting && handleDialog("exportData", false)}
         PaperProps={{
           elevation: 2,
           sx: {
@@ -1306,7 +1383,7 @@ const Settings = () => {
             fontSize: "1.25rem",
           }}
         >
-          {t("Export data")}
+          {t("export_data")}
         </DialogTitle>
 
         <DialogContent sx={{ px: 3, pt: 1, pb: 3 }}>
@@ -1318,20 +1395,203 @@ const Settings = () => {
               mb: 3,
             }}
           >
-            {t("Choose a format to export your data:")}
+            {t("select_date_range_and_format")}
           </Typography>
 
-          <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
+          {/* Date Range Type Selector */}
+          <Box sx={{ mb: 3 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                fontFamily: '"Google Sans", "Roboto", sans-serif',
+                fontWeight: 500,
+                mb: 1.5,
+                color: theme.palette.text.primary,
+              }}
+            >
+              {t("date_range")}
+            </Typography>
+            <ToggleButtonGroup
+              value={exportOptions.rangeType}
+              exclusive
+              onChange={(e, value) =>
+                value &&
+                setExportOptions({ ...exportOptions, rangeType: value })
+              }
+              fullWidth
+              sx={{
+                "& .MuiToggleButton-root": {
+                  textTransform: "none",
+                  fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  fontWeight: 500,
+                  py: 1,
+                  borderRadius: "12px !important",
+                  mx: 0.5,
+                  border: "1px solid",
+                  borderColor: theme.palette.divider,
+                  "&.Mui-selected": {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    borderColor: theme.palette.primary.main,
+                    "&:hover": {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                    },
+                  },
+                },
+              }}
+            >
+              <ToggleButton value="month">
+                <CalendarMonthRoundedIcon
+                  sx={{ mr: 0.5, fontSize: "1.1rem" }}
+                />
+                {t("month")}
+              </ToggleButton>
+              <ToggleButton value="year">
+                <DateRangeRoundedIcon sx={{ mr: 0.5, fontSize: "1.1rem" }} />
+                {t("year")}
+              </ToggleButton>
+              <ToggleButton value="custom">{t("custom")}</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          {/* Month/Year Selectors */}
+          {(exportOptions.rangeType === "month" ||
+            exportOptions.rangeType === "year") && (
+            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+              {exportOptions.rangeType === "month" && (
+                <FormControl fullWidth size="small">
+                  <InputLabel>{t("month")}</InputLabel>
+                  <Select
+                    value={exportOptions.selectedMonth}
+                    label={t("month")}
+                    onChange={(e) =>
+                      setExportOptions({
+                        ...exportOptions,
+                        selectedMonth: e.target.value,
+                      })
+                    }
+                    sx={{
+                      borderRadius: 2,
+                      fontFamily: '"Google Sans", "Roboto", sans-serif',
+                    }}
+                  >
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <MenuItem key={i} value={i}>
+                        {new Date(2000, i).toLocaleString(
+                          localStorage.getItem("language") || "en",
+                          { month: "long" }
+                        )}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              <FormControl fullWidth size="small">
+                <InputLabel>{t("year")}</InputLabel>
+                <Select
+                  value={exportOptions.selectedYear}
+                  label={t("year")}
+                  onChange={(e) =>
+                    setExportOptions({
+                      ...exportOptions,
+                      selectedYear: e.target.value,
+                    })
+                  }
+                  sx={{
+                    borderRadius: 2,
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  }}
+                >
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <MenuItem key={year} value={year}>
+                        {year}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
+
+          {/* Custom Date Range */}
+          {exportOptions.rangeType === "custom" && (
+            <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+              <TextField
+                label={t("start_date")}
+                type="date"
+                size="small"
+                fullWidth
+                value={exportOptions.customStartDate}
+                onChange={(e) =>
+                  setExportOptions({
+                    ...exportOptions,
+                    customStartDate: e.target.value,
+                  })
+                }
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  },
+                }}
+              />
+              <TextField
+                label={t("end_date")}
+                type="date"
+                size="small"
+                fullWidth
+                value={exportOptions.customEndDate}
+                onChange={(e) =>
+                  setExportOptions({
+                    ...exportOptions,
+                    customEndDate: e.target.value,
+                  })
+                }
+                InputLabelProps={{ shrink: true }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    fontFamily: '"Google Sans", "Roboto", sans-serif',
+                  },
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Export Format Buttons */}
+          <Typography
+            variant="body2"
+            sx={{
+              fontFamily: '"Google Sans", "Roboto", sans-serif',
+              fontWeight: 500,
+              mb: 1.5,
+              color: theme.palette.text.primary,
+            }}
+          >
+            {t("format")}
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
             <Button
               onClick={() => handleExport("CSV")}
               variant="outlined"
-              startIcon={<GridOnRoundedIcon />}
+              disabled={exporting}
+              startIcon={
+                exporting ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <GridOnRoundedIcon />
+                )
+              }
               sx={{
                 textTransform: "none",
                 fontFamily: '"Google Sans", "Roboto", sans-serif',
                 fontWeight: 500,
                 borderRadius: "20px",
                 px: 3,
+                flex: 1,
               }}
             >
               CSV
@@ -1339,14 +1599,28 @@ const Settings = () => {
 
             <Button
               onClick={() => handleExport("PDF")}
-              variant="outlined"
-              startIcon={<PictureAsPdfRoundedIcon />}
+              variant="contained"
+              disabled={exporting}
+              disableElevation
+              startIcon={
+                exporting ? (
+                  <CircularProgress size={16} color="inherit" />
+                ) : (
+                  <PictureAsPdfRoundedIcon />
+                )
+              }
               sx={{
                 textTransform: "none",
                 fontFamily: '"Google Sans", "Roboto", sans-serif',
                 fontWeight: 500,
                 borderRadius: "20px",
                 px: 3,
+                flex: 1,
+                boxShadow: "none",
+                "&:hover": {
+                  boxShadow:
+                    "0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)",
+                },
               }}
             >
               PDF
@@ -1358,6 +1632,7 @@ const Settings = () => {
           <Button
             onClick={() => handleDialog("exportData", false)}
             color="inherit"
+            disabled={exporting}
             sx={{
               textTransform: "none",
               fontFamily: '"Google Sans", "Roboto", sans-serif',
@@ -1365,12 +1640,12 @@ const Settings = () => {
               borderRadius: "20px",
             }}
           >
-            {t("Cancel")}
+            {t("cancel")}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Notification Snackbar - Google Pay style */}
+      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={5000}

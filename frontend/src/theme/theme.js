@@ -1,41 +1,40 @@
 import { createTheme } from "@mui/material/styles";
 
 export const createAppTheme = (mode) => {
-  // Google Pay color system
   const isDark = mode === "dark";
 
   return createTheme({
     palette: {
       mode,
       primary: {
-        main: "#1a73e8", // Google Pay blue
+        main: "#1a73e8",
         light: "#4285f4",
         dark: "#0d47a1",
         contrastText: "#ffffff",
       },
       secondary: {
-        main: "#202124", // Dark gray for secondary actions
+        main: "#202124",
         light: "#5f6368",
         dark: "#000000",
         contrastText: "#ffffff",
       },
       error: {
-        main: "#d93025", // Google Pay error red
+        main: "#d93025",
         light: "#f28b82",
         dark: "#b31412",
       },
       warning: {
-        main: "#f29900", // Google Pay warning
+        main: "#f29900",
         light: "#fdd663",
         dark: "#e37400",
       },
       info: {
-        main: "#1a73e8", // Google Pay blue
+        main: "#1a73e8",
         light: "#4285f4",
         dark: "#0d47a1",
       },
       success: {
-        main: "#1e8e3e", // Google Pay green
+        main: "#1e8e3e",
         light: "#34a853",
         dark: "#137333",
       },
@@ -50,7 +49,6 @@ export const createAppTheme = (mode) => {
         disabled: isDark ? "#80868b" : "#80868b",
       },
       divider: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.12)",
-      // Google Pay specific colors
       gpay: {
         blue: "#1a73e8",
         green: "#1e8e3e",
@@ -153,7 +151,7 @@ export const createAppTheme = (mode) => {
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 20, // Google Pay uses pill-shaped buttons
+            borderRadius: 20,
             padding: "0 24px",
             height: 40,
             fontWeight: 500,
@@ -182,7 +180,7 @@ export const createAppTheme = (mode) => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 16, // Google Pay uses more rounded cards
+            borderRadius: 16,
             boxShadow: "none",
             border: (theme) => `1px solid ${theme.palette.divider}`,
             overflow: "hidden",
@@ -192,7 +190,7 @@ export const createAppTheme = (mode) => {
       MuiPaper: {
         styleOverrides: {
           rounded: {
-            borderRadius: 16, // Google Pay uses more rounded papers
+            borderRadius: 16,
           },
           elevation1: {
             boxShadow: "none",

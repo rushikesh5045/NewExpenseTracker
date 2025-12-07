@@ -20,7 +20,6 @@ import { useTranslation } from "react-i18next";
 import { deleteTransaction } from "../../services/api";
 import AddTransactionModal from "../transactions/AddTransactionModal";
 
-// Use rounded Material Icons for Google Pay style
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
@@ -82,7 +81,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
       onClose();
     } catch (error) {
       console.error("Error deleting transaction:", error);
-      alert(t("Failed to delete transaction. Please try again."));
+      alert(t("failed_to_delete_transaction_please_try_again"));
     } finally {
       setIsDeleting(false);
       setConfirmDelete(false);
@@ -99,22 +98,20 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
     return name.substring(0, 2);
   };
 
-  // Google Pay style avatar colors
   const getAvatarColors = () => {
     const type = transaction.type;
 
-    // Google Pay style color mapping
     if (type === "income") {
       return {
         bgColor: "rgba(30, 142, 62, 0.12)",
-        textColor: "#1e8e3e", // Google Green
+        textColor: "#1e8e3e",
         lightBg: "rgba(30, 142, 62, 0.05)",
         chipBg: "rgba(30, 142, 62, 0.08)",
       };
     } else {
       return {
         bgColor: "rgba(217, 48, 37, 0.12)",
-        textColor: "#d93025", // Google Red
+        textColor: "#d93025",
         lightBg: "rgba(217, 48, 37, 0.05)",
         chipBg: "rgba(217, 48, 37, 0.08)",
       };
@@ -139,7 +136,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
             maxWidth: "500px",
             maxHeight: "90vh",
             overflow: "hidden",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.2)", // Google Pay's shadow style
+            boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
           },
         }}
       >
@@ -161,7 +158,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
               fontSize: "1.125rem",
             }}
           >
-            {t("Transaction Details")}
+            {t("transaction_details")}
           </Typography>
           <IconButton
             edge="end"
@@ -188,7 +185,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
             },
           }}
         >
-          {/* Amount - Enhanced Google Pay style */}
+          {/* Amount */}
           <Box
             sx={{
               textAlign: "center",
@@ -196,7 +193,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
               backgroundColor: lightBg,
               py: 3,
               px: 2,
-              borderRadius: 3, // More rounded like Google Pay
+              borderRadius: 3,
               position: "relative",
               overflow: "hidden",
               "&::before": {
@@ -220,7 +217,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
             >
               <Chip
                 label={
-                  transaction.type === "income" ? t("Income") : t("Expense")
+                  transaction.type === "income" ? t("income") : t("expense")
                 }
                 size="small"
                 sx={{
@@ -261,7 +258,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
             </Typography>
           </Box>
 
-          {/* Category - Enhanced Google Pay style */}
+          {/* Category */}
           <Box
             sx={{
               display: "flex",
@@ -296,7 +293,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                   fontSize: "0.75rem",
                 }}
               >
-                {t("Category")}
+                {t("category")}
               </Typography>
               <Typography
                 variant="subtitle1"
@@ -310,7 +307,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
             </Box>
           </Box>
 
-          {/* Notes - Enhanced Google Pay style */}
+          {/* Notes */}
           {transaction.notes && (
             <Box
               sx={{
@@ -337,7 +334,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                     fontSize: "0.875rem",
                   }}
                 >
-                  {t("Notes")}
+                  {t("notes")}
                 </Typography>
               </Box>
               <Typography
@@ -353,7 +350,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
             </Box>
           )}
 
-          {/* Transaction ID - Google Pay style subtle info */}
+          {/* Transaction ID subtle info */}
           <Box
             sx={{
               display: "flex",
@@ -397,7 +394,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                   color: "text.primary",
                 }}
               >
-                {t("Are you sure you want to delete this transaction?")}
+                {t("are_you_sure_you_want_to_delete_this_transaction")}
               </Typography>
               <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
                 <Button
@@ -412,7 +409,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                     borderRadius: "20px",
                   }}
                 >
-                  {t("Cancel")}
+                  {t("cancel")}
                 </Button>
                 <Button
                   onClick={handleDelete}
@@ -433,7 +430,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                     boxShadow: "none",
                   }}
                 >
-                  {isDeleting ? t("Deleting...") : t("Delete")}
+                  {isDeleting ? t("deleting") : t("delete")}
                 </Button>
               </Box>
             </>
@@ -448,11 +445,11 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                   textTransform: "none",
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 500,
-                  borderRadius: "20px", // Google Pay's pill-shaped buttons
+                  borderRadius: "20px",
                   px: 2,
                 }}
               >
-                {t("Delete")}
+                {t("delete")}
               </Button>
               <Button
                 onClick={handleOpenEditModal}
@@ -464,7 +461,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                   textTransform: "none",
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 500,
-                  borderRadius: "20px", // Google Pay's pill-shaped buttons
+                  borderRadius: "20px",
                   px: 3,
                   boxShadow: "none",
                   "&:hover": {
@@ -473,7 +470,7 @@ const TransactionDetailModal = ({ open, onClose, transaction, onUpdate }) => {
                   },
                 }}
               >
-                {t("Edit")}
+                {t("edit")}
               </Button>
             </>
           )}

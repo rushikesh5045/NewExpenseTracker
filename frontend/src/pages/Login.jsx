@@ -21,7 +21,6 @@ import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../services/api";
 import LanguageSelector from "../components/common/LanguageSelector";
 
-// Google-style rounded icons
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
@@ -58,13 +57,13 @@ const Login = () => {
     const newErrors = {};
 
     if (!credentials.email) {
-      newErrors.email = t("Email is required");
+      newErrors.email = t("email_is_required");
     } else if (!/\S+@\S+\.\S+/.test(credentials.email)) {
-      newErrors.email = t("Invalid email address");
+      newErrors.email = t("invalid_email_address");
     }
 
     if (!credentials.password) {
-      newErrors.password = t("Password is required");
+      newErrors.password = t("password_is_required");
     }
 
     setErrors(newErrors);
@@ -85,7 +84,7 @@ const Login = () => {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          t("Login failed. Please check your credentials.")
+          t("login_failed_please_check_your_credentials")
       );
     } finally {
       setLoading(false);
@@ -161,7 +160,7 @@ const Login = () => {
                   mb: 1,
                 }}
               >
-                {t("Sign in")}
+                {t("sign_in")}
               </Typography>
               <Typography
                 variant="body2"
@@ -170,7 +169,7 @@ const Login = () => {
                   color: "text.secondary",
                 }}
               >
-                {t("to continue to your account")}
+                {t("to_continue_to_your_account")}
               </Typography>
             </Box>
 
@@ -238,7 +237,7 @@ const Login = () => {
                 fullWidth
                 id="email"
                 name="email"
-                label={t("Email")}
+                label={t("email")}
                 autoComplete="email"
                 autoFocus
                 value={credentials.email}
@@ -281,7 +280,7 @@ const Login = () => {
                 required
                 fullWidth
                 name="password"
-                label={t("Password")}
+                label={t("password")}
                 type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
@@ -357,7 +356,7 @@ const Login = () => {
                       display: "inline-block",
                     }}
                   >
-                    {t("Forgot password?")}
+                    {t("forgot_password")}
                   </Typography>
                 </Link>
               </Box>
@@ -377,7 +376,7 @@ const Login = () => {
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 500,
                   fontSize: "0.9375rem",
-                  borderRadius: "24px", // Google Pay's pill-shaped buttons
+                  borderRadius: "24px",
                   boxShadow: "none",
                   "&:hover": {
                     boxShadow:
@@ -399,10 +398,10 @@ const Login = () => {
                       color="inherit"
                       sx={{ mr: 1 }}
                     />
-                    {t("Signing in...")}
+                    {t("signing_in")}
                   </Box>
                 ) : (
-                  t("Sign in")
+                  t("sign_in")
                 )}
               </Button>
 
@@ -440,7 +439,7 @@ const Login = () => {
                     color: "text.secondary",
                   }}
                 >
-                  {t("Don't have an account?")}{" "}
+                  {t("don_t_have_an_account")}{" "}
                   <Link
                     component={RouterLink}
                     to="/register"
@@ -461,7 +460,7 @@ const Login = () => {
                         display: "inline-block",
                       }}
                     >
-                      {t("Create account")}
+                      {t("create_account")}
                     </Typography>
                   </Link>
                 </Typography>
@@ -482,7 +481,7 @@ const Login = () => {
               mb: 0.5,
             }}
           >
-            {t("By continuing, you agree to our")}
+            {t("by_continuing,_you_agree_to_our")}
           </Typography>
           <Box
             sx={{
@@ -505,7 +504,7 @@ const Login = () => {
                 },
               }}
             >
-              {t("Terms of Service")}
+              {t("terms_of_service")}
             </Link>
             <Typography
               variant="caption"
@@ -529,7 +528,7 @@ const Login = () => {
                 },
               }}
             >
-              {t("Privacy Policy")}
+              {t("privacy_policy")}
             </Link>
           </Box>
         </Box>

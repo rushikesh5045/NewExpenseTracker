@@ -9,7 +9,6 @@ import {
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
-// Use rounded Material Icons for Google Pay style
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
 import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
@@ -32,7 +31,7 @@ const SummaryCard = ({ summary, loading }) => {
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 3, // Google Pay uses more rounded corners
+        borderRadius: 3,
         overflow: "hidden",
         bgcolor: theme.palette.mode === "light" ? "#ffffff" : "#303134",
         border: "1px solid",
@@ -40,12 +39,12 @@ const SummaryCard = ({ summary, loading }) => {
         boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
       }}
     >
-      {/* Balance - Google Pay style */}
+      {/* Balance */}
       <Box
         sx={{
           p: 3,
           pb: 2.5,
-          backgroundColor: theme.palette.primary.main, // Google Pay blue background
+          backgroundColor: theme.palette.primary.main,
           color: "#ffffff",
         }}
       >
@@ -69,7 +68,7 @@ const SummaryCard = ({ summary, loading }) => {
               fontWeight: 500,
             }}
           >
-            {t("Current Balance")}
+            {t("current_balance")}
           </Typography>
         </Box>
 
@@ -99,7 +98,7 @@ const SummaryCard = ({ summary, loading }) => {
         )}
       </Box>
 
-      {/* Income and Expense - Google Pay style */}
+      {/* Income and Expense */}
       <Box sx={{ display: "flex" }}>
         {/* Income */}
         <Box
@@ -129,8 +128,8 @@ const SummaryCard = ({ summary, loading }) => {
                 justifyContent: "center",
                 backgroundColor:
                   theme.palette.mode === "light"
-                    ? "rgba(30, 142, 62, 0.08)" // Light green background
-                    : "rgba(30, 142, 62, 0.16)", // Darker green background for dark mode
+                    ? "rgba(30, 142, 62, 0.08)"
+                    : "rgba(30, 142, 62, 0.16)",
                 mb: 1,
               }}
             >
@@ -151,7 +150,7 @@ const SummaryCard = ({ summary, loading }) => {
               mb: 0.5,
             }}
           >
-            {t("Income")}
+            {t("income")}
           </Typography>
 
           {loading ? (
@@ -201,8 +200,8 @@ const SummaryCard = ({ summary, loading }) => {
                 justifyContent: "center",
                 backgroundColor:
                   theme.palette.mode === "light"
-                    ? "rgba(217, 48, 37, 0.08)" // Light red background
-                    : "rgba(217, 48, 37, 0.16)", // Darker red background for dark mode
+                    ? "rgba(217, 48, 37, 0.08)"
+                    : "rgba(217, 48, 37, 0.16)",
                 mb: 1,
               }}
             >
@@ -223,7 +222,7 @@ const SummaryCard = ({ summary, loading }) => {
               mb: 0.5,
             }}
           >
-            {t("Expense")}
+            {t("expense")}
           </Typography>
 
           {loading ? (

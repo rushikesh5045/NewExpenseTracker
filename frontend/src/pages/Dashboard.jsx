@@ -31,7 +31,6 @@ import AddTransactionModal from "../components/transactions/AddTransactionModal"
 import DatePickerDialog from "../components/dashboard/DatePickerDialog";
 import { getTransactions, getTransactionSummary } from "../services/api";
 
-// Google-style rounded icons
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
@@ -215,7 +214,7 @@ const Dashboard = () => {
   // Handle successful transaction creation/update/deletion
   const handleTransactionSuccess = (message) => {
     fetchData();
-    showNotification(message || t("Transaction saved successfully"));
+    showNotification(message || t("transaction_saved_successfully"));
   };
 
   // Group transactions by month (for year view)
@@ -338,7 +337,7 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      showNotification(t("Failed to load data. Please try again."), "error");
+      showNotification(t("failed_to_load_data_please_try_again"), "error");
     } finally {
       setLoading(false);
     }
@@ -438,7 +437,7 @@ const Dashboard = () => {
               mb: 1,
             }}
           >
-            {t("No transactions yet")}
+            {t("no_transactions_yet")}
           </Typography>
           <Typography
             variant="body2"
@@ -450,7 +449,7 @@ const Dashboard = () => {
               fontFamily: '"Google Sans Text", "Roboto", sans-serif',
             }}
           >
-            {t("Add your first transaction to start tracking your finances")}
+            {t("add_your_first_transaction_to_start_tracking_your_finances")}
           </Typography>
 
           <Button
@@ -463,7 +462,7 @@ const Dashboard = () => {
               textTransform: "none",
               fontFamily: '"Google Sans", "Roboto", sans-serif',
               fontWeight: 500,
-              borderRadius: "20px", // Google Pay's pill-shaped buttons
+              borderRadius: "20px",
               px: 3,
               boxShadow: "none",
               "&:hover": {
@@ -472,7 +471,7 @@ const Dashboard = () => {
               },
             }}
           >
-            {t("Add Transaction")}
+            {t("add_transaction")}
           </Button>
         </Box>
       );
@@ -529,7 +528,7 @@ const Dashboard = () => {
                   borderBottom: expandedMonth === month ? "1px solid" : "none",
                   borderBottomColor: "divider",
                   minHeight: 64,
-                  px: 3,
+                  px: { xs: 1.5, sm: 3 },
                 }}
               >
                 <Box
@@ -538,7 +537,9 @@ const Dashboard = () => {
                     justifyContent: "space-between",
                     width: "100%",
                     alignItems: "center",
-                    mr: 3,
+                    mr: { xs: 1, sm: 3 },
+                    flexWrap: "wrap",
+                    gap: { xs: 0.5, sm: 0 },
                   }}
                 >
                   <Typography
@@ -546,11 +547,13 @@ const Dashboard = () => {
                     sx={{
                       fontFamily: '"Google Sans", "Roboto", sans-serif',
                       fontWeight: 500,
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                      minWidth: { xs: "auto", sm: "auto" },
                     }}
                   >
                     {monthName}
                   </Typography>
-                  <Box sx={{ display: "flex", gap: 3 }}>
+                  <Box sx={{ display: "flex", gap: { xs: 1, sm: 3 } }}>
                     <Box sx={{ textAlign: "right" }}>
                       <Typography
                         variant="body2"
@@ -558,10 +561,10 @@ const Dashboard = () => {
                         sx={{
                           fontFamily:
                             '"Google Sans Text", "Roboto", sans-serif',
-                          fontSize: "0.75rem",
+                          fontSize: { xs: "0.625rem", sm: "0.75rem" },
                         }}
                       >
-                        {t("Income")}
+                        {t("income")}
                       </Typography>
                       <Typography
                         variant="body1"
@@ -569,6 +572,7 @@ const Dashboard = () => {
                         sx={{
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                           fontWeight: 500,
+                          fontSize: { xs: "0.75rem", sm: "1rem" },
                         }}
                       >
                         {formatCurrency(monthSummary.income)}
@@ -581,10 +585,10 @@ const Dashboard = () => {
                         sx={{
                           fontFamily:
                             '"Google Sans Text", "Roboto", sans-serif',
-                          fontSize: "0.75rem",
+                          fontSize: { xs: "0.625rem", sm: "0.75rem" },
                         }}
                       >
-                        {t("Expense")}
+                        {t("expense")}
                       </Typography>
                       <Typography
                         variant="body1"
@@ -592,28 +596,35 @@ const Dashboard = () => {
                         sx={{
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                           fontWeight: 500,
+                          fontSize: { xs: "0.75rem", sm: "1rem" },
                         }}
                       >
                         {formatCurrency(monthSummary.expense)}
                       </Typography>
                     </Box>
-                    <Box sx={{ textAlign: "right", minWidth: 100 }}>
+                    <Box
+                      sx={{
+                        textAlign: "right",
+                        minWidth: { xs: "auto", sm: 100 },
+                      }}
+                    >
                       <Typography
                         variant="body2"
                         color="text.secondary"
                         sx={{
                           fontFamily:
                             '"Google Sans Text", "Roboto", sans-serif',
-                          fontSize: "0.75rem",
+                          fontSize: { xs: "0.625rem", sm: "0.75rem" },
                         }}
                       >
-                        {t("Balance")}
+                        {t("balance")}
                       </Typography>
                       <Typography
                         variant="body1"
                         sx={{
                           fontFamily: '"Google Sans", "Roboto", sans-serif',
                           fontWeight: 500,
+                          fontSize: { xs: "0.75rem", sm: "1rem" },
                           color:
                             monthSummary.balance >= 0
                               ? "success.main"
@@ -662,7 +673,7 @@ const Dashboard = () => {
               fontSize: "1.5rem",
             }}
           >
-            {t("Home")}
+            {t("home")}
           </Typography>
           <Typography
             variant="body2"
@@ -671,13 +682,13 @@ const Dashboard = () => {
               fontFamily: '"Google Sans Text", "Roboto", sans-serif',
             }}
           >
-            {t("Welcome back")}, {currentUser?.name}
+            {t("welcome_back")}, {currentUser?.name}
           </Typography>
         </Box>
         <LanguageSelector />
       </Box>
 
-      {/* View Type Tabs - Google Pay style */}
+      {/* View Type Tabs */}
       <Paper
         elevation={0}
         sx={{
@@ -708,13 +719,13 @@ const Dashboard = () => {
             },
           }}
         >
-          <Tab value="day" label={t("Day")} />
-          <Tab value="month" label={t("Month")} />
-          <Tab value="year" label={t("Year")} />
+          <Tab value="day" label={t("day")} />
+          <Tab value="month" label={t("month")} />
+          <Tab value="year" label={t("year")} />
         </Tabs>
       </Paper>
 
-      {/* Date Navigator - Google Pay style */}
+      {/* Date Navigator */}
       <Paper
         elevation={0}
         sx={{
@@ -786,7 +797,7 @@ const Dashboard = () => {
         </IconButton>
       </Paper>
 
-      {/* Today Button (only show if not on today) - Google Pay style */}
+      {/* Today Button (only show if not on today) */}
       {!isToday() && (
         <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
           <Button
@@ -802,7 +813,7 @@ const Dashboard = () => {
               fontWeight: 500,
             }}
           >
-            {t("Today")}
+            {t("today")}
           </Button>
         </Box>
       )}
@@ -829,7 +840,7 @@ const Dashboard = () => {
               fontSize: "1.125rem",
             }}
           >
-            {t("Transactions")}
+            {t("transactions")}
           </Typography>
 
           <DownloadMenu />
@@ -838,7 +849,7 @@ const Dashboard = () => {
         {renderTransactions()}
       </Box>
 
-      {/* Add Transaction FAB - Google Pay style */}
+      {/* Add Transaction FAB */}
       <Fab
         color="primary"
         aria-label="add transaction"
@@ -863,7 +874,7 @@ const Dashboard = () => {
         open={addModalOpen}
         onClose={handleCloseAddModal}
         onSuccess={() => {
-          handleTransactionSuccess(t("Transaction added successfully"));
+          handleTransactionSuccess(t("transaction_added_successfully"));
           handleCloseAddModal();
         }}
       />
@@ -877,7 +888,7 @@ const Dashboard = () => {
         viewType={viewType}
       />
 
-      {/* Notification Snackbar - Google Pay style */}
+      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={5000}

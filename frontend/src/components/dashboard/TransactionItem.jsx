@@ -90,20 +90,18 @@ const TransactionItem = ({ transaction, isLast, onUpdate }) => {
     return null;
   };
 
-  // Google Pay style avatar colors
   const getAvatarColors = () => {
     const type = transaction.type;
 
-    // Google Pay style color mapping
     if (type === "income") {
       return {
         bgColor: "rgba(30, 142, 62, 0.12)",
-        textColor: "#1e8e3e", // Google Green
+        textColor: "#1e8e3e",
       };
     } else {
       return {
         bgColor: "rgba(217, 48, 37, 0.12)",
-        textColor: "#d93025", // Google Red
+        textColor: "#d93025",
       };
     }
   };
@@ -171,7 +169,7 @@ const TransactionItem = ({ transaction, isLast, onUpdate }) => {
               maxWidth: "100%",
             }}
           >
-            {transaction.notes || t("No description")}
+            {transaction.notes || t("no_description")}
           </Typography>
         </Box>
 

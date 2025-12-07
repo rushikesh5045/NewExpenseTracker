@@ -16,7 +16,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { useTranslation } from "react-i18next";
 
-// Use rounded Material Icons for Google Pay style
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 
@@ -54,13 +53,13 @@ const DatePickerDialog = ({
   const getDialogTitle = () => {
     switch (viewType) {
       case "day":
-        return t("Select Day");
+        return t("select_day");
       case "month":
-        return t("Select Month");
+        return t("select_month");
       case "year":
-        return t("Select Year");
+        return t("select_year");
       default:
-        return t("Select Date");
+        return t("select_date");
     }
   };
 
@@ -71,11 +70,11 @@ const DatePickerDialog = ({
       PaperProps={{
         elevation: 2,
         sx: {
-          borderRadius: 3, // More rounded corners for Google Pay style
+          borderRadius: 3,
           width: "100%",
           maxWidth: "360px",
           overflow: "hidden",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.2)", // Google Pay's shadow style
+          boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
         },
       }}
     >
@@ -160,7 +159,7 @@ const DatePickerDialog = ({
               },
               "& .MuiPickersYear-yearButton": {
                 fontFamily: '"Google Sans Text", "Roboto", sans-serif',
-                borderRadius: "20px", // Pill-shaped year buttons
+                borderRadius: "20px",
               },
               "& .MuiPickersYear-yearButton.Mui-selected": {
                 backgroundColor: theme.palette.primary.main,
@@ -168,7 +167,7 @@ const DatePickerDialog = ({
               },
               "& .MuiPickersMonth-root": {
                 fontFamily: '"Google Sans Text", "Roboto", sans-serif',
-                borderRadius: "20px", // Pill-shaped month buttons
+                borderRadius: "20px",
               },
               "& .MuiPickersMonth-root.Mui-selected": {
                 backgroundColor: theme.palette.primary.main,
@@ -195,11 +194,11 @@ const DatePickerDialog = ({
             fontWeight: 500,
             fontSize: "0.875rem",
             color: theme.palette.primary.main,
-            borderRadius: "20px", // Google Pay's pill-shaped buttons
+            borderRadius: "20px",
             padding: "6px 16px",
           }}
         >
-          {t("Today")}
+          {t("today")}
         </Button>
         <Button
           onClick={handleApply}
@@ -210,7 +209,7 @@ const DatePickerDialog = ({
             fontFamily: '"Google Sans", "Roboto", sans-serif',
             fontWeight: 500,
             fontSize: "0.875rem",
-            borderRadius: "20px", // Google Pay's pill-shaped buttons
+            borderRadius: "20px",
             padding: "6px 24px",
             boxShadow: "none",
             "&:hover": {
@@ -219,7 +218,7 @@ const DatePickerDialog = ({
             },
           }}
         >
-          {t("Apply")}
+          {t("apply")}
         </Button>
       </DialogActions>
     </Dialog>

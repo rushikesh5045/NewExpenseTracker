@@ -21,7 +21,6 @@ import { useTranslation } from "react-i18next";
 import { registerUser } from "../services/api";
 import LanguageSelector from "../components/common/LanguageSelector";
 
-// Google-style rounded icons
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
@@ -94,34 +93,34 @@ const Register = () => {
 
   // Get text based on password strength
   const getPasswordStrengthText = () => {
-    if (passwordStrength < 50) return t("Weak");
-    if (passwordStrength < 100) return t("Medium");
-    return t("Strong");
+    if (passwordStrength < 50) return t("weak");
+    if (passwordStrength < 100) return t("medium");
+    return t("strong");
   };
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!userData.name) {
-      newErrors.name = t("Name is required");
+      newErrors.name = t("name_is_required");
     }
 
     if (!userData.email) {
-      newErrors.email = t("Email is required");
+      newErrors.email = t("email_is_required");
     } else if (!/\S+@\S+\.\S+/.test(userData.email)) {
-      newErrors.email = t("Invalid email address");
+      newErrors.email = t("invalid_email_address");
     }
 
     if (!userData.password) {
-      newErrors.password = t("Password is required");
+      newErrors.password = t("password_is_required");
     } else if (userData.password.length < 8) {
-      newErrors.password = t("Password must be at least 8 characters");
+      newErrors.password = t("password_must_be_at_least_8_characters");
     }
 
     if (!userData.confirmPassword) {
-      newErrors.confirmPassword = t("Confirm password is required");
+      newErrors.confirmPassword = t("confirm_password_is_required");
     } else if (userData.password !== userData.confirmPassword) {
-      newErrors.confirmPassword = t("Passwords must match");
+      newErrors.confirmPassword = t("passwords_must_match");
     }
 
     setErrors(newErrors);
@@ -138,12 +137,12 @@ const Register = () => {
       setError(null);
       await registerUser(userData);
       navigate("/login", {
-        state: { message: t("Registration successful! Please sign in.") },
+        state: { message: t("registration_successful_please_sign_in") },
       });
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          t("Registration failed. Please try again.")
+          t("registration_failed_please_try_again")
       );
     } finally {
       setLoading(false);
@@ -185,7 +184,7 @@ const Register = () => {
               },
             }}
           >
-            {t("Sign in")}
+            {t("sign_in")}
           </Button>
           <LanguageSelector />
         </Box>
@@ -244,7 +243,7 @@ const Register = () => {
                   mb: 1,
                 }}
               >
-                {t("Create account")}
+                {t("create_account")}
               </Typography>
               <Typography
                 variant="body2"
@@ -253,7 +252,7 @@ const Register = () => {
                   color: "text.secondary",
                 }}
               >
-                {t("to start managing your finances")}
+                {t("to_start_managing_your_finances")}
               </Typography>
             </Box>
 
@@ -293,7 +292,7 @@ const Register = () => {
                 fullWidth
                 id="name"
                 name="name"
-                label={t("Name")}
+                label={t("name")}
                 autoComplete="name"
                 autoFocus
                 value={userData.name}
@@ -337,7 +336,7 @@ const Register = () => {
                 fullWidth
                 id="email"
                 name="email"
-                label={t("Email")}
+                label={t("email")}
                 autoComplete="email"
                 value={userData.email}
                 onChange={handleChange}
@@ -379,7 +378,7 @@ const Register = () => {
                 required
                 fullWidth
                 name="password"
-                label={t("Password")}
+                label={t("password")}
                 type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="new-password"
@@ -452,7 +451,7 @@ const Register = () => {
                         color: "text.secondary",
                       }}
                     >
-                      {t("Password strength")}
+                      {t("password_strength")}
                     </Typography>
                     <Typography
                       variant="caption"
@@ -486,7 +485,7 @@ const Register = () => {
                 required
                 fullWidth
                 name="confirmPassword"
-                label={t("Confirm Password")}
+                label={t("confirm_password")}
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
                 autoComplete="new-password"
@@ -563,7 +562,7 @@ const Register = () => {
                           color: theme.palette.success.main,
                         }}
                       >
-                        {t("Passwords match")}
+                        {t("passwords_match")}
                       </Typography>
                     </>
                   ) : (
@@ -581,7 +580,7 @@ const Register = () => {
                           color: theme.palette.error.main,
                         }}
                       >
-                        {t("Passwords don't match")}
+                        {t("passwords_don_t_match")}
                       </Typography>
                     </>
                   )}
@@ -603,7 +602,7 @@ const Register = () => {
                   fontFamily: '"Google Sans", "Roboto", sans-serif',
                   fontWeight: 500,
                   fontSize: "0.9375rem",
-                  borderRadius: "24px", // Google Pay's pill-shaped buttons
+                  borderRadius: "24px",
                   boxShadow: "none",
                   "&:hover": {
                     boxShadow:
@@ -625,10 +624,10 @@ const Register = () => {
                       color="inherit"
                       sx={{ mr: 1 }}
                     />
-                    {t("Creating account...")}
+                    {t("creating_account")}
                   </Box>
                 ) : (
-                  t("Create account")
+                  t("create_account")
                 )}
               </Button>
             </Box>
@@ -647,7 +646,7 @@ const Register = () => {
               mb: 0.5,
             }}
           >
-            {t("By creating an account, you agree to our")}
+            {t("by_creating_an_account,_you_agree_to_our")}
           </Typography>
           <Box
             sx={{
@@ -670,7 +669,7 @@ const Register = () => {
                 },
               }}
             >
-              {t("Terms of Service")}
+              {t("terms_of_service")}
             </Link>
             <Typography
               variant="caption"
@@ -694,7 +693,7 @@ const Register = () => {
                 },
               }}
             >
-              {t("Privacy Policy")}
+              {t("privacy_policy")}
             </Link>
           </Box>
         </Box>

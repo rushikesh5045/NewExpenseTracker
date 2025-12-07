@@ -50,9 +50,6 @@ export const deleteCategory = (id) => {
   return api.delete(`/categories/${id}`);
 };
 
-// Add these functions to your existing api.js file
-
-// Transaction services
 export const getTransactions = (params) => {
   return api.get("/transactions", { params });
 };
@@ -107,10 +104,19 @@ export const deleteAccount = () => {
   return api.delete("/users/account");
 };
 
-// Export data
-export const exportData = (format) => {
-  return api.get(`/data/export?format=${format}`, {
-    responseType: "blob", // Important for file downloads
+// Export data with optional date range
+export const exportData = (format, options = {}) => {
+  const params = new URLSearchParams({ format });
+  
+  if (options.startDate) {
+    params.append("startDate", options.startDate);
+  }
+  if (options.endDate) {
+    params.append("endDate", options.endDate);
+  }
+  
+  return api.get(`/data/export?${params.toString()}`, {
+    responseType: "blob",
   });
 };
 

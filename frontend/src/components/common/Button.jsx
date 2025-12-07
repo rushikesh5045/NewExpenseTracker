@@ -30,7 +30,7 @@ const Button = ({
         textTransform: "none",
         fontFamily: '"Google Sans", "Roboto", sans-serif',
         fontWeight: 500,
-        borderRadius: "20px", // Google Pay's pill-shaped buttons
+        borderRadius: "20px",
         boxShadow: "none",
         "&:hover": {
           boxShadow:

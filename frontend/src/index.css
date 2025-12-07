@@ -35,7 +35,6 @@
 }
 
 :root {
-  /* Google Pay color variables */
   --gpay-blue: #1a73e8;
   --gpay-blue-light: #4285f4;
   --gpay-blue-dark: #0d47a1;
@@ -140,7 +139,6 @@ button {
   padding: 0;
 }
 
-/* Google Pay specific utility classes */
 .gpay-card {
   background-color: var(--background-paper);
   border-radius: var(--border-radius-medium);

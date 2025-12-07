@@ -20,26 +20,25 @@ import {
 import { useTranslation } from "react-i18next";
 import { createCategory } from "../../services/api";
 
-// Replace with Material Symbols for Google Pay look
+
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import ColorLensRoundedIcon from "@mui/icons-material/ColorLensRounded";
 
-// Google Pay color palette
 const categoryColors = [
-  "#1a73e8", // Google Blue
-  "#d93025", // Google Red
-  "#1e8e3e", // Google Green
-  "#f9ab00", // Google Yellow
-  "#9334e6", // Purple
-  "#fa903e", // Orange
-  "#1bb8c4", // Teal
-  "#d01884", // Pink
-  "#5f6368", // Gray
-  "#188038", // Dark Green
-  "#c5221f", // Dark Red
-  "#24c1e0", // Light Blue
+  "#1a73e8",
+  "#d93025",
+  "#1e8e3e",
+  "#f9ab00",
+  "#9334e6",
+  "#fa903e",
+  "#1bb8c4",
+  "#d01884",
+  "#5f6368",
+  "#188038",
+  "#c5221f",
+  "#24c1e0",
 ];
 
 const AddCategoryModal = ({
@@ -105,11 +104,11 @@ const AddCategoryModal = ({
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = t("Category name is required");
+      newErrors.name = t("category_name_is_required");
     }
 
     if (!formData.color) {
-      newErrors.color = t("Please select a color");
+      newErrors.color = t("please_select_a_color");
     }
 
     setErrors(newErrors);
@@ -137,7 +136,7 @@ const AddCategoryModal = ({
         });
       } else {
         setErrors({
-          submit: t("Failed to create category. Please try again."),
+          submit: t("failed_to_create_category_please_try_again"),
         });
       }
     } finally {
@@ -154,7 +153,7 @@ const AddCategoryModal = ({
       PaperProps={{
         elevation: 0,
         sx: {
-          borderRadius: 3, // Google Pay uses more rounded corners
+          borderRadius: 3,
           overflow: "hidden",
         },
       }}
@@ -177,7 +176,7 @@ const AddCategoryModal = ({
             fontSize: "1.125rem",
           }}
         >
-          {t("Add Category")}
+          {t("add_category")}
         </Typography>
         <IconButton
           edge="end"
@@ -204,7 +203,7 @@ const AddCategoryModal = ({
           },
         }}
       >
-        {/* Category Type Toggle - Google Pay style toggle */}
+        {/* Category Type Toggle toggle */}
         <Box sx={{ mb: 3 }}>
           <ToggleButtonGroup
             value={formData.type}
@@ -214,7 +213,7 @@ const AddCategoryModal = ({
             fullWidth
             sx={{
               "& .MuiToggleButtonGroup-grouped": {
-                borderRadius: "20px !important", // Pill shape like Google Pay
+                borderRadius: "20px !important",
                 mx: 0,
                 border: `1px solid ${theme.palette.divider}`,
                 "&.Mui-selected": {
@@ -241,7 +240,7 @@ const AddCategoryModal = ({
               }}
             >
               <AddRoundedIcon sx={{ mr: 1, fontSize: 20 }} />
-              {t("Income")}
+              {t("income")}
             </ToggleButton>
             <ToggleButton
               value="expense"
@@ -260,18 +259,18 @@ const AddCategoryModal = ({
               }}
             >
               <RemoveRoundedIcon sx={{ mr: 1, fontSize: 20 }} />
-              {t("Expense")}
+              {t("expense")}
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
 
-        {/* Category Name - Google Pay style text field */}
+        {/* Category Name text field */}
         <TextField
           autoFocus
           margin="dense"
           id="name"
           name="name"
-          label={t("Category Name")}
+          label={t("category_name")}
           type="text"
           fullWidth
           variant="outlined"
@@ -297,7 +296,7 @@ const AddCategoryModal = ({
           }}
         />
 
-        {/* Color Selection - Google Pay style color picker */}
+        {/* Color Selection color picker */}
         <Box sx={{ mb: 3 }}>
           <Typography
             variant="subtitle2"
@@ -318,7 +317,7 @@ const AddCategoryModal = ({
                 color: theme.palette.primary.main,
               }}
             />
-            {t("Select Color")}
+            {t("select_color")}
           </Typography>
 
           <Box
@@ -404,7 +403,7 @@ const AddCategoryModal = ({
             textTransform: "none",
             fontFamily: '"Google Sans", "Roboto", sans-serif',
             fontWeight: 500,
-            borderRadius: 20, // Google Pay's pill-shaped buttons
+            borderRadius: 20,
             px: 3,
             color:
               theme.palette.mode === "light"
@@ -412,7 +411,7 @@ const AddCategoryModal = ({
                 : "rgba(255,255,255,0.7)",
           }}
         >
-          {t("Cancel")}
+          {t("cancel")}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -424,7 +423,7 @@ const AddCategoryModal = ({
             textTransform: "none",
             fontFamily: '"Google Sans", "Roboto", sans-serif',
             fontWeight: 500,
-            borderRadius: 20, // Google Pay's pill-shaped buttons
+            borderRadius: 20,
             px: 3,
             py: 1,
             boxShadow: "none",
@@ -435,7 +434,7 @@ const AddCategoryModal = ({
           }}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? t("Creating...") : t("Create")}
+          {isSubmitting ? t("creating") : t("create")}
         </Button>
       </DialogActions>
     </Dialog>

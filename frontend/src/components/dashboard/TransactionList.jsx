@@ -12,7 +12,6 @@ import {
 import { useTranslation } from "react-i18next";
 import TransactionItem from "./TransactionItem";
 
-// Google Pay style icons
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
 
@@ -25,7 +24,7 @@ const TransactionList = ({
   const { t } = useTranslation();
   const theme = useTheme();
 
-  // Empty state component with Google Pay styling
+  
   const EmptyState = () => (
     <Box
       sx={{
@@ -78,7 +77,7 @@ const TransactionList = ({
           mb: 1,
         }}
       >
-        {t("No transactions yet")}
+        {t("no_transactions_yet")}
       </Typography>
       <Typography
         variant="body2"
@@ -90,7 +89,7 @@ const TransactionList = ({
           fontFamily: '"Google Sans Text", "Roboto", sans-serif',
         }}
       >
-        {t("Add your first transaction to start tracking your finances")}
+        {t("add_your_first_transaction_to_start_tracking_your_finances")}
       </Typography>
 
       {onAddTransaction && (
@@ -104,7 +103,7 @@ const TransactionList = ({
             textTransform: "none",
             fontFamily: '"Google Sans", "Roboto", sans-serif',
             fontWeight: 500,
-            borderRadius: "20px", // Google Pay's pill-shaped buttons
+            borderRadius: "20px",
             px: 3,
             boxShadow: "none",
             "&:hover": {
@@ -113,7 +112,7 @@ const TransactionList = ({
             },
           }}
         >
-          {t("Add Transaction")}
+          {t("add_transaction")}
         </Button>
       )}
     </Box>
@@ -151,7 +150,7 @@ const TransactionList = ({
 
   const groupedTransactions = groupTransactionsByDate();
 
-  // Content component with Google Pay styling
+  
   const TransactionContent = () => (
     <List
       sx={{
@@ -164,7 +163,7 @@ const TransactionList = ({
       {Object.entries(groupedTransactions).map(
         ([date, dateTransactions], groupIndex) => (
           <React.Fragment key={date}>
-            {/* Date header - Google Pay style */}
+            {/* Date header */}
             <Box
               sx={{
                 px: { xs: 2, sm: 3 },
@@ -237,7 +236,7 @@ const TransactionList = ({
     <Paper
       elevation={0}
       sx={{
-        borderRadius: 3, // More rounded corners for Google Pay style
+        borderRadius: 3,
         overflow: "hidden",
         border: "1px solid",
         borderColor: theme.palette.divider,
