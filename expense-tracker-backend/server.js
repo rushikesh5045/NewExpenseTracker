@@ -40,7 +40,8 @@ app.get("/health-check", (req, res) => {
   res.json({
     status: "active",
     version: "1.1.0",
-    update: "Phase 1: Code Quality - Added validation, error handling, constants",
+    update:
+      "Phase 1: Code Quality - Added validation, error handling, constants",
     timestamp: new Date().toISOString(),
   });
 });
