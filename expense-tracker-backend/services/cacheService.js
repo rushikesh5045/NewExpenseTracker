@@ -11,9 +11,13 @@ class CacheService {
     try {
       const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
 
+      // Check if using TLS (Upstash uses rediss://)
+      const useTLS = redisUrl.startsWith("rediss://");
+
       this.client = redis.createClient({
         url: redisUrl,
         socket: {
+          tls: useTLS,
           reconnectStrategy: (retries) => {
             if (retries > 3) {
               console.log("Redis: Max reconnection attempts reached");
