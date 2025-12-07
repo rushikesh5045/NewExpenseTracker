@@ -1,4 +1,3 @@
-// routes/userRoutes.js
 const express = require("express");
 const router = express.Router();
 const {
@@ -7,12 +6,20 @@ const {
   deleteAccount,
 } = require("../controllers/userController");
 const { protect } = require("../middleware/auth");
+const {
+  validateBody,
+  updateProfileSchema,
+  changePasswordSchema,
+} = require("../validators");
 
-// All routes are protected
 router.use(protect);
 
-router.put("/profile", updateProfile);
-router.put("/change-password", changePassword);
+router.put("/profile", validateBody(updateProfileSchema), updateProfile);
+router.put(
+  "/change-password",
+  validateBody(changePasswordSchema),
+  changePassword
+);
 router.delete("/account", deleteAccount);
 
 module.exports = router;

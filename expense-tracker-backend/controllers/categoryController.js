@@ -1,141 +1,97 @@
 const Category = require("../models/Category");
+const { asyncHandler } = require("../utils");
+const { NotFoundError, ForbiddenError, ConflictError } = require("../utils/errors");
+const { HTTP_STATUS, MESSAGES } = require("../constants");
 
-// @desc    Get all categories (default + user's custom categories)
-// @route   GET /api/categories
-// @access  Private
-const getCategories = async (req, res) => {
-  try {
-    // Get default categories and user's custom categories
-    const categories = await Category.find({
-      $or: [{ isDefault: true }, { userId: req.user._id }],
-    }).sort({ type: 1, name: 1 });
+const getCategories = asyncHandler(async (req, res) => {
+  const categories = await Category.find({
+    $or: [{ isDefault: true }, { userId: req.user._id }],
+  }).sort({ type: 1, name: 1 });
 
-    res.json(categories);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: categories,
+  });
+});
+
+const createCategory = asyncHandler(async (req, res) => {
+  const { name, type, color, icon } = req.body;
+
+  const existingCategory = await Category.findOne({
+    name: { $regex: new RegExp(`^${name}$`, "i") },
+    $or: [{ isDefault: true }, { userId: req.user._id }],
+  });
+
+  if (existingCategory) {
+    throw new ConflictError(MESSAGES.CATEGORY.EXISTS);
   }
-};
 
-// @desc    Create a new category
-// @route   POST /api/categories
-// @access  Private
-const createCategory = async (req, res) => {
-  try {
-    const { name, type, color, icon } = req.body;
+  const category = await Category.create({
+    name,
+    type,
+    color,
+    icon,
+    userId: req.user._id,
+    isDefault: false,
+  });
 
-    // Validate input
-    if (!name || !type || !color || !icon) {
-      return res
-        .status(400)
-        .json({ message: "Please provide all required fields" });
-    }
+  res.status(HTTP_STATUS.CREATED).json({
+    success: true,
+    data: category,
+  });
+});
 
-    // Check if category with same name already exists for this user
-    const existingCategory = await Category.findOne({
-      name: { $regex: new RegExp(`^${name}$`, "i") }, // Case insensitive
-      $or: [{ isDefault: true }, { userId: req.user._id }],
-    });
+const updateCategory = asyncHandler(async (req, res) => {
+  const { name, color, icon } = req.body;
 
-    if (existingCategory) {
-      return res
-        .status(400)
-        .json({ message: "Category with this name already exists" });
-    }
+  const category = await Category.findById(req.params.id);
 
-    // Create category
-    const category = await Category.create({
-      name,
-      type,
-      color,
-      icon,
-      userId: req.user._id,
-      isDefault: false,
-    });
-
-    res.status(201).json(category);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+  if (!category) {
+    throw new NotFoundError(MESSAGES.CATEGORY.NOT_FOUND);
   }
-};
 
-// @desc    Update a category
-// @route   PUT /api/categories/:id
-// @access  Private
-const updateCategory = async (req, res) => {
-  try {
-    const { name, color, icon } = req.body;
-
-    // Find category
-    const category = await Category.findById(req.params.id);
-
-    if (!category) {
-      return res.status(404).json({ message: "Category not found" });
-    }
-
-    // Check if it's a default category
-    if (category.isDefault) {
-      return res
-        .status(403)
-        .json({ message: "Default categories cannot be modified" });
-    }
-
-    // Check if user owns this category
-    if (category.userId.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to update this category" });
-    }
-
-    // Update category
-    category.name = name || category.name;
-    category.color = color || category.color;
-    category.icon = icon || category.icon;
-
-    const updatedCategory = await category.save();
-
-    res.json(updatedCategory);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+  if (category.isDefault) {
+    throw new ForbiddenError(MESSAGES.CATEGORY.DEFAULT_CANNOT_MODIFY);
   }
-};
 
-// @desc    Delete a category
-// @route   DELETE /api/categories/:id
-// @access  Private
-const deleteCategory = async (req, res) => {
-  try {
-    // Find category
-    const category = await Category.findById(req.params.id);
-
-    if (!category) {
-      return res.status(404).json({ message: "Category not found" });
-    }
-
-    // Check if it's a default category
-    if (category.isDefault) {
-      return res
-        .status(403)
-        .json({ message: "Default categories cannot be deleted" });
-    }
-
-    // Check if user owns this category
-    if (category.userId.toString() !== req.user._id.toString()) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to delete this category" });
-    }
-
-    await category.deleteOne();
-
-    res.json({ message: "Category removed" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+  if (category.userId.toString() !== req.user._id.toString()) {
+    throw new ForbiddenError(MESSAGES.CATEGORY.NOT_AUTHORIZED_UPDATE);
   }
-};
+
+  category.name = name || category.name;
+  category.color = color || category.color;
+  category.icon = icon || category.icon;
+
+  const updatedCategory = await category.save();
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: updatedCategory,
+  });
+});
+
+const deleteCategory = asyncHandler(async (req, res) => {
+  const category = await Category.findById(req.params.id);
+
+  if (!category) {
+    throw new NotFoundError(MESSAGES.CATEGORY.NOT_FOUND);
+  }
+
+  if (category.isDefault) {
+    throw new ForbiddenError(MESSAGES.CATEGORY.DEFAULT_CANNOT_DELETE);
+  }
+
+  if (category.userId.toString() !== req.user._id.toString()) {
+    throw new ForbiddenError(MESSAGES.CATEGORY.NOT_AUTHORIZED_DELETE);
+  }
+
+  await category.deleteOne();
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: MESSAGES.CATEGORY.REMOVED,
+  });
+});
 
 module.exports = {
   getCategories,

@@ -10,7 +10,6 @@ const api = axios.create({
   },
 });
 
-// Add token to requests if available
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -20,6 +19,29 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => {
+    if (response.config.responseType === "blob") {
+      return response;
+    }
+    if (response.data && response.data.success !== undefined) {
+      if (response.data.data !== undefined) {
+        response.data = response.data.data;
+      }
+    }
+    return response;
+  },
+  (error) => {
+    if (error.response?.data?.message) {
+      error.message = error.response.data.message;
+    }
+    if (error.response?.data?.errors) {
+      error.validationErrors = error.response.data.errors;
+    }
     return Promise.reject(error);
   }
 );
@@ -107,14 +129,14 @@ export const deleteAccount = () => {
 // Export data with optional date range
 export const exportData = (format, options = {}) => {
   const params = new URLSearchParams({ format });
-  
+
   if (options.startDate) {
     params.append("startDate", options.startDate);
   }
   if (options.endDate) {
     params.append("endDate", options.endDate);
   }
-  
+
   return api.get(`/data/export?${params.toString()}`, {
     responseType: "blob",
   });

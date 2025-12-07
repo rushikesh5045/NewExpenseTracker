@@ -48,8 +48,8 @@ const ResetPassword = () => {
   useEffect(() => {
     const checkToken = async () => {
       try {
-        await validateResetToken(token);
-        setTokenValid(true);
+        const response = await validateResetToken(token);
+        setTokenValid(response.data.valid);
       } catch (err) {
         setTokenValid(false);
       } finally {

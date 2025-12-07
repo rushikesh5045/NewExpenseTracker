@@ -3,222 +3,153 @@ const User = require("../models/User");
 const PasswordReset = require("../models/PasswordReset");
 const { sendPasswordResetEmail } = require("../services/emailService");
 const crypto = require("crypto-js");
+const { asyncHandler } = require("../utils");
+const { BadRequestError, NotFoundError, ConflictError } = require("../utils/errors");
+const { HTTP_STATUS, MESSAGES, TOKEN_EXPIRY } = require("../constants");
 
-// Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "30d",
+    expiresIn: TOKEN_EXPIRY.ACCESS_TOKEN,
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
-const registerUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ email });
 
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+  if (userExists) {
+    throw new ConflictError(MESSAGES.AUTH.USER_EXISTS);
+  }
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password,
+  const user = await User.create({
+    name,
+    email,
+    password,
+  });
+
+  if (!user) {
+    throw new BadRequestError("Invalid user data");
+  }
+
+  res.status(HTTP_STATUS.CREATED).json({
+    success: true,
+    message: MESSAGES.AUTH.REGISTER_SUCCESS,
+  });
+});
+
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user || !(await user.matchPassword(password))) {
+    throw new BadRequestError(MESSAGES.AUTH.INVALID_CREDENTIALS);
+  }
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: {
+      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    },
+  });
+});
+
+const getUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("-password");
+
+  if (!user) {
+    throw new NotFoundError(MESSAGES.AUTH.USER_NOT_FOUND);
+  }
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: user,
+  });
+});
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: MESSAGES.AUTH.PASSWORD_RESET_EMAIL_SENT,
     });
-
-    if (user) {
-      res.status(201).json({
-        message: "User registered successfully",
-      });
-    } else {
-      res.status(400).json({ message: "Invalid user data" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
   }
-};
 
-// @desc    Auth user & get token
-// @route   POST /api/auth/login
-// @access  Public
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  await PasswordReset.deleteMany({ userId: user._id });
 
-    // Check for user email
-    const user = await User.findOne({ email });
+  const resetToken = crypto.lib.WordArray.random(32).toString();
+  const hashedToken = crypto.SHA256(resetToken).toString();
 
-    if (user && (await user.matchPassword(password))) {
-      res.json({
-        token: generateToken(user._id),
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-        },
-      });
-    } else {
-      res.status(401).json({ message: "Invalid email or password" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  await PasswordReset.create({
+    userId: user._id,
+    token: hashedToken,
+  });
 
-// @desc    Get user profile
-// @route   GET /api/auth/profile
-// @access  Private
-const getUserProfile = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).select("-password");
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    if (user) {
-      res.json(user);
-    } else {
-      res.status(404).json({ message: "User not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
 
-// @desc    Request password reset
-// @route   POST /api/auth/forgot-password
-// @access  Public
-const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ message: "Email is required" });
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email });
-
-    // Don't reveal if user exists or not for security reasons
-    if (!user) {
-      return res.status(200).json({
-        message:
-          "If your email is registered, you will receive a password reset link",
-      });
-    }
-
-    // Delete any existing reset tokens for this user
+  if (!emailSent) {
     await PasswordReset.deleteMany({ userId: user._id });
-
-    // Generate a random token
-    const resetToken = crypto.lib.WordArray.random(32).toString();
-
-    // Hash token before saving to database
-    const hashedToken = crypto.SHA256(resetToken).toString();
-
-    // Save token to database
-    await PasswordReset.create({
-      userId: user._id,
-      token: hashedToken,
-    });
-
-    // Create reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    // Send email
-    const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
-
-    if (!emailSent) {
-      await PasswordReset.deleteMany({ userId: user._id });
-      return res
-        .status(500)
-        .json({ message: "Failed to send email. Please try again." });
-    }
-
-    res.status(200).json({
-      message:
-        "If your email is registered, you will receive a password reset link",
-    });
-  } catch (error) {
-    console.error("Error in forgot password:", error);
-    res.status(500).json({ message: "Server error" });
+    throw new BadRequestError(MESSAGES.AUTH.EMAIL_SEND_FAILED);
   }
-};
 
-// @desc    Reset password
-// @route   POST /api/auth/reset-password
-// @access  Public
-const resetPassword = async (req, res) => {
-  try {
-    const { token, password } = req.body;
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: MESSAGES.AUTH.PASSWORD_RESET_EMAIL_SENT,
+  });
+});
 
-    if (!token || !password) {
-      return res
-        .status(400)
-        .json({ message: "Token and password are required" });
-    }
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, password } = req.body;
 
-    // Hash token to compare with stored hash
-    const hashedToken = crypto.SHA256(token).toString();
+  const hashedToken = crypto.SHA256(token).toString();
 
-    // Find valid token
-    const passwordReset = await PasswordReset.findOne({ token: hashedToken });
+  const passwordReset = await PasswordReset.findOne({ token: hashedToken });
 
-    if (!passwordReset) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
-
-    // Find user
-    const user = await User.findById(passwordReset.userId);
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    user.password = password;
-
-    // Save user with new password
-    await user.save();
-
-    // Delete reset token
-    await PasswordReset.deleteMany({ userId: user._id });
-
-    res.status(200).json({ message: "Password reset successful" });
-  } catch (error) {
-    console.error("Error in reset password:", error);
-    res.status(500).json({ message: "Server error" });
+  if (!passwordReset) {
+    throw new BadRequestError(MESSAGES.AUTH.INVALID_TOKEN);
   }
-};
 
-// @desc    Validate reset token
-// @route   GET /api/auth/validate-reset-token/:token
-// @access  Public
-const validateResetToken = async (req, res) => {
-  try {
-    const { token } = req.params;
+  const user = await User.findById(passwordReset.userId);
 
-    // Hash token to compare with stored hash
-    const hashedToken = crypto.SHA256(token).toString();
-
-    // Find valid token
-    const passwordReset = await PasswordReset.findOne({ token: hashedToken });
-
-    if (!passwordReset) {
-      return res.status(400).json({ valid: false });
-    }
-
-    res.status(200).json({ valid: true });
-  } catch (error) {
-    console.error("Error validating token:", error);
-    res.status(500).json({ message: "Server error" });
+  if (!user) {
+    throw new NotFoundError(MESSAGES.AUTH.USER_NOT_FOUND);
   }
-};
+
+  user.password = password;
+  await user.save();
+
+  await PasswordReset.deleteMany({ userId: user._id });
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    message: MESSAGES.AUTH.PASSWORD_RESET_SUCCESS,
+  });
+});
+
+const validateResetToken = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+
+  const hashedToken = crypto.SHA256(token).toString();
+
+  const passwordReset = await PasswordReset.findOne({ token: hashedToken });
+
+  res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: { valid: !!passwordReset },
+  });
+});
 
 module.exports = {
   registerUser,

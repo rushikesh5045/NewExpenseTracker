@@ -1,0 +1,32 @@
+const TRANSACTION_TYPES = {
+  INCOME: "income",
+  EXPENSE: "expense",
+};
+
+const TRANSACTION_TYPE_VALUES = Object.values(TRANSACTION_TYPES);
+
+const EXPORT_FORMATS = {
+  PDF: "pdf",
+  CSV: "csv",
+};
+
+const EXPORT_FORMAT_VALUES = Object.values(EXPORT_FORMATS);
+
+const TOKEN_EXPIRY = {
+  ACCESS_TOKEN: "30d",
+  RESET_TOKEN_HOURS: 1,
+};
+
+const SORT_ORDER = {
+  ASC: 1,
+  DESC: -1,
+};
+
+module.exports = {
+  TRANSACTION_TYPES,
+  TRANSACTION_TYPE_VALUES,
+  EXPORT_FORMATS,
+  EXPORT_FORMAT_VALUES,
+  TOKEN_EXPIRY,
+  SORT_ORDER,
+};
