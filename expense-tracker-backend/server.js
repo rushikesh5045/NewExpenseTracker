@@ -41,8 +41,8 @@ app.get("/", (req, res) => {
 app.get("/health-check", (req, res) => {
   res.json({
     status: "active",
-    version: "1.2.0",
-    update: "Phase 2: Redis caching for categories and summaries",
+    version: "1.3.0",
+    update: "Edit/Delete user-created categories feature",
     cache: cacheService.isConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
   });

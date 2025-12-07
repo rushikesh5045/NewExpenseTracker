@@ -21,6 +21,7 @@ import {
   ListItemText,
   ListItemIcon,
   Backdrop,
+  ListItemSecondaryAction,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -30,8 +31,10 @@ import {
   createTransaction,
   updateTransaction,
   getCategories,
+  deleteCategory,
 } from "../../services/api";
 import AddCategoryModal from "../categories/AddCategoryModal";
+import DeleteConfirmDialog from "../common/DeleteConfirmDialog";
 
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
@@ -43,7 +46,8 @@ import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import KeyboardArrowRightRoundedIcon from "@mui/icons-material/KeyboardArrowRightRounded";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
-
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -83,6 +87,11 @@ const AddTransactionModal = ({
   const [showCategorySelector, setShowCategorySelector] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [addCategoryModalOpen, setAddCategoryModalOpen] = useState(false);
+  const [editCategoryData, setEditCategoryData] = useState(null);
+  const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] =
+    useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -210,12 +219,64 @@ const AddTransactionModal = ({
 
   // Open add category modal
   const handleOpenAddCategoryModal = () => {
+    setEditCategoryData(null);
     setAddCategoryModalOpen(true);
   };
 
   // Close add category modal
   const handleCloseAddCategoryModal = () => {
     setAddCategoryModalOpen(false);
+    setEditCategoryData(null);
+  };
+
+  // Open edit category modal
+  const handleEditCategory = (e, category) => {
+    e.stopPropagation(); // Prevent category selection
+    setEditCategoryData(category);
+    setAddCategoryModalOpen(true);
+  };
+
+  // Open delete category confirmation
+  const handleOpenDeleteCategoryDialog = (e, category) => {
+    e.stopPropagation(); // Prevent category selection
+    setCategoryToDelete(category);
+    setDeleteCategoryDialogOpen(true);
+  };
+
+  // Close delete category dialog
+  const handleCloseDeleteCategoryDialog = () => {
+    setDeleteCategoryDialogOpen(false);
+    setCategoryToDelete(null);
+  };
+
+  // Handle delete category
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    try {
+      setIsDeletingCategory(true);
+      await deleteCategory(categoryToDelete._id);
+
+      // If the deleted category was selected, clear selection
+      if (formData.category === categoryToDelete._id) {
+        setFormData((prev) => ({ ...prev, category: "" }));
+        setSelectedCategory(null);
+      }
+
+      // Refresh categories by fetching again
+      try {
+        const response = await getCategories();
+        setCategories(response.data);
+      } catch (fetchError) {
+        console.error("Error refreshing categories:", fetchError);
+      }
+
+      handleCloseDeleteCategoryDialog();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    } finally {
+      setIsDeletingCategory(false);
+    }
   };
 
   // Get category initials for avatar
@@ -831,7 +892,54 @@ const AddTransactionModal = ({
                     </Typography>
                   }
                 />
-                {isSelected && <CheckRoundedIcon color="primary" />}
+                {/* Edit/Delete buttons for user-created categories */}
+                {!category.isDefault && (
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      edge="end"
+                      size="small"
+                      onClick={(e) => handleEditCategory(e, category)}
+                      sx={{
+                        mr: 0.5,
+                        color: theme.palette.text.secondary,
+                        "&:hover": {
+                          color: theme.palette.primary.main,
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            0.08
+                          ),
+                        },
+                      }}
+                    >
+                      <EditRoundedIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      edge="end"
+                      size="small"
+                      onClick={(e) =>
+                        handleOpenDeleteCategoryDialog(e, category)
+                      }
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        "&:hover": {
+                          color: theme.palette.error.main,
+                          backgroundColor: alpha(
+                            theme.palette.error.main,
+                            0.08
+                          ),
+                        },
+                      }}
+                    >
+                      <DeleteRoundedIcon fontSize="small" />
+                    </IconButton>
+                    {isSelected && (
+                      <CheckRoundedIcon color="primary" sx={{ ml: 1 }} />
+                    )}
+                  </ListItemSecondaryAction>
+                )}
+                {isSelected && category.isDefault && (
+                  <CheckRoundedIcon color="primary" />
+                )}
               </ListItem>
             );
           })}
@@ -1008,6 +1116,17 @@ const AddTransactionModal = ({
         onClose={handleCloseAddCategoryModal}
         onSuccess={handleCategorySuccess}
         initialType={formData.type}
+        editCategory={editCategoryData}
+      />
+
+      {/* Delete Category Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteCategoryDialogOpen}
+        onClose={handleCloseDeleteCategoryDialog}
+        onConfirm={handleDeleteCategory}
+        title={t("delete_category")}
+        message={t("are_you_sure_you_want_to_delete_this_category")}
+        isDeleting={isDeletingCategory}
       />
     </>
   );

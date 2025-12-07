@@ -1,5 +1,5 @@
 // src/components/categories/AddCategoryModal.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -18,8 +18,7 @@ import {
   alpha,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { createCategory } from "../../services/api";
-
+import { createCategory, updateCategory } from "../../services/api";
 
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
@@ -46,9 +45,11 @@ const AddCategoryModal = ({
   onClose,
   onSuccess,
   initialType = "expense",
+  editCategory = null, // Category to edit (null for create mode)
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const isEditMode = !!editCategory;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -57,6 +58,26 @@ const AddCategoryModal = ({
     color: categoryColors[0],
     icon: "category", // Default icon
   });
+
+  // Initialize form data when editCategory changes
+  useEffect(() => {
+    if (editCategory) {
+      setFormData({
+        name: editCategory.name || "",
+        type: editCategory.type || initialType,
+        color: editCategory.color || categoryColors[0],
+        icon: editCategory.icon || "category",
+      });
+    } else {
+      setFormData({
+        name: "",
+        type: initialType,
+        color: categoryColors[0],
+        icon: "category",
+      });
+    }
+    setErrors({});
+  }, [editCategory, initialType, open]);
 
   // Error state
   const [errors, setErrors] = useState({});
@@ -122,12 +143,19 @@ const AddCategoryModal = ({
     try {
       setIsSubmitting(true);
 
-      await createCategory(formData);
+      if (isEditMode) {
+        await updateCategory(editCategory._id, formData);
+      } else {
+        await createCategory(formData);
+      }
 
       onSuccess && onSuccess();
       onClose();
     } catch (error) {
-      console.error("Error creating category:", error);
+      console.error(
+        `Error ${isEditMode ? "updating" : "creating"} category:`,
+        error
+      );
 
       // Handle API errors
       if (error.response?.data?.message) {
@@ -136,7 +164,9 @@ const AddCategoryModal = ({
         });
       } else {
         setErrors({
-          submit: t("failed_to_create_category_please_try_again"),
+          submit: isEditMode
+            ? t("failed_to_update_category_please_try_again")
+            : t("failed_to_create_category_please_try_again"),
         });
       }
     } finally {
@@ -176,7 +206,7 @@ const AddCategoryModal = ({
             fontSize: "1.125rem",
           }}
         >
-          {t("add_category")}
+          {isEditMode ? t("edit_category") : t("add_category")}
         </Typography>
         <IconButton
           edge="end"
@@ -434,7 +464,13 @@ const AddCategoryModal = ({
           }}
           startIcon={isSubmitting ? <CircularProgress size={16} /> : null}
         >
-          {isSubmitting ? t("creating") : t("create")}
+          {isSubmitting
+            ? isEditMode
+              ? t("saving")
+              : t("creating")
+            : isEditMode
+            ? t("save")
+            : t("create")}
         </Button>
       </DialogActions>
     </Dialog>
