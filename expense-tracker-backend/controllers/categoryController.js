@@ -1,12 +1,35 @@
 const Category = require("../models/Category");
 const { asyncHandler } = require("../utils");
-const { NotFoundError, ForbiddenError, ConflictError } = require("../utils/errors");
-const { HTTP_STATUS, MESSAGES } = require("../constants");
+const {
+  NotFoundError,
+  ForbiddenError,
+  ConflictError,
+} = require("../utils/errors");
+const {
+  HTTP_STATUS,
+  MESSAGES,
+  CACHE_KEYS,
+  CACHE_TTL,
+} = require("../constants");
+const cacheService = require("../services/cacheService");
 
 const getCategories = asyncHandler(async (req, res) => {
+  const cacheKey = CACHE_KEYS.CATEGORIES(req.user._id);
+
+  const cachedCategories = await cacheService.get(cacheKey);
+  if (cachedCategories) {
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: cachedCategories,
+      cached: true,
+    });
+  }
+
   const categories = await Category.find({
     $or: [{ isDefault: true }, { userId: req.user._id }],
   }).sort({ type: 1, name: 1 });
+
+  await cacheService.set(cacheKey, categories, CACHE_TTL.CATEGORIES);
 
   res.status(HTTP_STATUS.OK).json({
     success: true,
@@ -34,6 +57,8 @@ const createCategory = asyncHandler(async (req, res) => {
     userId: req.user._id,
     isDefault: false,
   });
+
+  await cacheService.del(CACHE_KEYS.CATEGORIES(req.user._id));
 
   res.status(HTTP_STATUS.CREATED).json({
     success: true,
@@ -64,6 +89,8 @@ const updateCategory = asyncHandler(async (req, res) => {
 
   const updatedCategory = await category.save();
 
+  await cacheService.del(CACHE_KEYS.CATEGORIES(req.user._id));
+
   res.status(HTTP_STATUS.OK).json({
     success: true,
     data: updatedCategory,
@@ -86,6 +113,8 @@ const deleteCategory = asyncHandler(async (req, res) => {
   }
 
   await category.deleteOne();
+
+  await cacheService.del(CACHE_KEYS.CATEGORIES(req.user._id));
 
   res.status(HTTP_STATUS.OK).json({
     success: true,

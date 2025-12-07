@@ -8,6 +8,7 @@ const {
   TOKEN_EXPIRY,
   SORT_ORDER,
 } = require("./enums");
+const { CACHE_KEYS, CACHE_TTL } = require("./cache");
 
 module.exports = {
   HTTP_STATUS,
@@ -18,4 +19,6 @@ module.exports = {
   EXPORT_FORMAT_VALUES,
   TOKEN_EXPIRY,
   SORT_ORDER,
+  CACHE_KEYS,
+  CACHE_TTL,
 };

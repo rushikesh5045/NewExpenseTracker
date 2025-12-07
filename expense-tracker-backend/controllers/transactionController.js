@@ -2,8 +2,23 @@ const Transaction = require("../models/Transaction");
 const Category = require("../models/Category");
 const mongoose = require("mongoose");
 const { asyncHandler } = require("../utils");
-const { BadRequestError, NotFoundError, ForbiddenError } = require("../utils/errors");
-const { HTTP_STATUS, MESSAGES, TRANSACTION_TYPE_VALUES } = require("../constants");
+const {
+  BadRequestError,
+  NotFoundError,
+  ForbiddenError,
+} = require("../utils/errors");
+const {
+  HTTP_STATUS,
+  MESSAGES,
+  TRANSACTION_TYPE_VALUES,
+  CACHE_KEYS,
+  CACHE_TTL,
+} = require("../constants");
+const cacheService = require("../services/cacheService");
+
+const invalidateSummaryCache = async (userId) => {
+  await cacheService.delPattern(`summary:${userId}:*`);
+};
 
 const getTransactions = asyncHandler(async (req, res) => {
   const { startDate, endDate, type, category } = req.query;
@@ -80,6 +95,8 @@ const createTransaction = asyncHandler(async (req, res) => {
   await transaction.save();
   await transaction.populate("category", "name color icon");
 
+  await invalidateSummaryCache(req.user._id);
+
   res.status(HTTP_STATUS.CREATED).json({
     success: true,
     data: transaction,
@@ -115,6 +132,8 @@ const updateTransaction = asyncHandler(async (req, res) => {
   await transaction.save();
   await transaction.populate("category", "name color icon");
 
+  await invalidateSummaryCache(req.user._id);
+
   res.status(HTTP_STATUS.OK).json({
     success: true,
     data: transaction,
@@ -134,6 +153,8 @@ const deleteTransaction = asyncHandler(async (req, res) => {
 
   await transaction.deleteOne();
 
+  await invalidateSummaryCache(req.user._id);
+
   res.status(HTTP_STATUS.OK).json({
     success: true,
     message: MESSAGES.TRANSACTION.REMOVED,
@@ -142,6 +163,21 @@ const deleteTransaction = asyncHandler(async (req, res) => {
 
 const getTransactionSummary = asyncHandler(async (req, res) => {
   const { startDate, endDate } = req.query;
+
+  const cacheKey = CACHE_KEYS.TRANSACTION_SUMMARY(
+    req.user._id,
+    startDate,
+    endDate
+  );
+
+  const cachedSummary = await cacheService.get(cacheKey);
+  if (cachedSummary) {
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      data: cachedSummary,
+      cached: true,
+    });
+  }
 
   const dateFilter = {};
   if (startDate && endDate) {
@@ -176,13 +212,13 @@ const getTransactionSummary = asyncHandler(async (req, res) => {
   const expense = summary.find((item) => item._id === "expense")?.total || 0;
   const balance = income - expense;
 
+  const summaryData = { income, expense, balance };
+
+  await cacheService.set(cacheKey, summaryData, CACHE_TTL.TRANSACTION_SUMMARY);
+
   res.status(HTTP_STATUS.OK).json({
     success: true,
-    data: {
-      income,
-      expense,
-      balance,
-    },
+    data: summaryData,
   });
 });
 

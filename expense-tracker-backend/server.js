@@ -2,11 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const cacheService = require("./services/cacheService");
 const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 
 dotenv.config();
 
 connectDB();
+cacheService.connect();
 
 const app = express();
 
@@ -39,9 +41,9 @@ app.get("/", (req, res) => {
 app.get("/health-check", (req, res) => {
   res.json({
     status: "active",
-    version: "1.1.0",
-    update:
-      "Phase 1: Code Quality - Added validation, error handling, constants",
+    version: "1.2.0",
+    update: "Phase 2: Redis caching for categories and summaries",
+    cache: cacheService.isConnected ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
   });
 });
