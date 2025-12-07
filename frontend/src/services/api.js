@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-  "https://expense-tracker-backend-480412-534168519598.asia-south1.run.app/api";
+  "https://expense-tracker-backend-480412-534168519598.asia-south1.run.app";
 
 const api = axios.create({
   baseURL: API_URL,
