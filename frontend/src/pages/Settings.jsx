@@ -40,6 +40,7 @@ import {
   changePassword,
   deleteAccount,
   exportData,
+  clearAllData,
 } from "../services/api";
 
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
@@ -463,7 +464,11 @@ const Settings = () => {
   // Handle clear all data
   const handleClearData = async () => {
     try {
-      // Implement clear data API call
+      // Call clear data API
+      await clearAllData();
+
+      // Dispatch event to refresh other components
+      window.dispatchEvent(new CustomEvent("transactionChanged"));
 
       // Show success notification
       setNotification({
