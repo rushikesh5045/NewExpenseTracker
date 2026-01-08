@@ -44,7 +44,8 @@ const exportData = asyncHandler(async (req, res) => {
     res.attachment("expense-tracker-data.csv");
     return res.send(csv);
   } else if (format.toLowerCase() === EXPORT_FORMATS.PDF) {
-    const doc = new PDFDocument({ margin: 40 });
+    // 1. Setup Document
+    const doc = new PDFDocument({ margin: 30, size: "A4" });
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -54,278 +55,293 @@ const exportData = asyncHandler(async (req, res) => {
 
     doc.pipe(res);
 
+    // 2. Register Fonts (Critical for Devanagari & Rupee Support)
     const fontPath = path.join(__dirname, "../fonts");
-    let useDevanagari = false;
+    let activeFont = "Helvetica";
+    let boldFont = "Helvetica-Bold";
 
     try {
-      // Try to register Devanagari font first (supports Hindi, Marathi, and Latin)
+      const fs = require("fs");
       const devanagariPath = path.join(
         fontPath,
         "NotoSansDevanagari-Regular.ttf"
       );
-      const fs = require("fs");
+      const notoSansPath = path.join(fontPath, "NotoSans-Regular.ttf");
+      const notoSansBoldPath = path.join(fontPath, "NotoSans-Bold.ttf");
 
       if (fs.existsSync(devanagariPath)) {
-        doc.registerFont("NotoSansDevanagari", devanagariPath);
-        doc.font("NotoSansDevanagari");
-        useDevanagari = true;
-      } else {
-        // Fallback to regular NotoSans
-        doc.registerFont(
-          "NotoSans",
-          path.join(fontPath, "NotoSans-Regular.ttf")
-        );
-        doc.registerFont(
-          "NotoSans-Bold",
-          path.join(fontPath, "NotoSans-Bold.ttf")
-        );
-        doc.font("NotoSans");
+        doc.registerFont("Regular", devanagariPath);
+        doc.registerFont("Bold", devanagariPath);
+        activeFont = "Regular";
+        boldFont = "Bold";
+      } else if (fs.existsSync(notoSansPath)) {
+        doc.registerFont("Regular", notoSansPath);
+        if (fs.existsSync(notoSansBoldPath)) {
+          doc.registerFont("Bold", notoSansBoldPath);
+        } else {
+          doc.registerFont("Bold", notoSansPath);
+        }
+        activeFont = "Regular";
+        boldFont = "Bold";
       }
+      doc.font(activeFont);
     } catch (err) {
-      console.log("Custom font not found, using default font:", err.message);
+      console.log("Custom font not found, using default:", err.message);
     }
 
+    // 3. Styling Palette
     const colors = {
-      primary: "#4285f4",
-      success: "#1e8e3e",
-      error: "#d93025",
-      textPrimary: "#202124",
-      textSecondary: "#5f6368",
-      border: "#dadce0",
-      background: "#f8f9fa",
-      white: "#ffffff",
+      primary: "#1976D2", // Professional Blue
+      headerText: "#FFFFFF",
+      rowEven: "#FFFFFF",
+      rowOdd: "#F5F7FA", // Very light grey-blue
+      border: "#E0E0E0", // Soft border
+      textPrimary: "#333333",
+      textSecondary: "#666666",
+      success: "#2E7D32", // Green
+      error: "#D32F2F", // Red
     };
 
-    const totalIncome = transactions
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
-    const totalExpense = transactions
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-    const balance = totalIncome - totalExpense;
-
-    const formatCurrency = (amount) => {
-      return "\u20B9" + amount.toLocaleString("en-IN");
-    };
-
-    const formatDate = (date) => {
-      return new Date(date).toLocaleDateString("en-IN", {
-        day: "numeric",
+    const formatCurrency = (amount) =>
+      "\u20B9" + amount.toLocaleString("en-IN");
+    const formatDate = (date) =>
+      new Date(date).toLocaleDateString("en-IN", {
+        day: "2-digit",
         month: "short",
         year: "numeric",
       });
-    };
 
-    const pageWidth = doc.page.width - 80;
-    const startX = 40;
+    // Layout Config
+    const startX = 30;
+    const pageWidth = doc.page.width - startX * 2;
 
-    doc.rect(0, 0, doc.page.width, 100).fill(colors.primary);
+    // Column Configuration
+    const columns = [
+      { header: "Date", width: 75, align: "left" },
+      { header: "Category", width: 100, align: "left" },
+      { header: "Description", width: 200, align: "left" },
+      { header: "Type", width: 70, align: "center" },
+      { header: "Amount", width: 90, align: "right" },
+    ];
 
-    doc.fontSize(24).fillColor(colors.white);
-    doc.text("Expense Tracker", startX, 35, { align: "center" });
+    let currentY = 50;
 
-    doc.fontSize(11).fillColor(colors.white);
-    doc.text(
-      `Transaction Report • Generated on ${formatDate(new Date())}`,
-      startX,
-      65,
-      {
-        align: "center",
-        width: pageWidth,
-      }
-    );
+    // --- Helper: Header Drawer ---
+    const drawTableHeaders = (y) => {
+      // Header Background
+      doc.rect(startX, y, pageWidth, 30).fill(colors.primary);
 
-    const cardTop = 120;
-    const cardHeight = 130;
+      doc.fillColor(colors.headerText).fontSize(10).font(boldFont);
 
-    doc
-      .roundedRect(startX + 2, cardTop + 2, pageWidth, cardHeight, 12)
-      .fill("#e8eaed");
-
-    doc
-      .roundedRect(startX, cardTop, pageWidth, cardHeight, 12)
-      .fill(colors.white);
-
-    doc
-      .roundedRect(startX, cardTop, pageWidth, cardHeight, 12)
-      .strokeColor(colors.border)
-      .lineWidth(1)
-      .stroke();
-
-    doc
-      .save()
-      .roundedRect(startX, cardTop, pageWidth, 70, 12)
-      .clip()
-      .rect(startX, cardTop, pageWidth, 70)
-      .fill(colors.primary)
-      .restore();
-
-    doc.fontSize(11).fillColor(colors.white);
-    doc.text("Current Balance", startX, cardTop + 15, {
-      align: "center",
-      width: pageWidth,
-    });
-
-    doc.fontSize(28).fillColor(colors.white);
-    doc.text(formatCurrency(balance), startX, cardTop + 32, {
-      align: "center",
-      width: pageWidth,
-    });
-
-    const summaryY = cardTop + 85;
-    const halfWidth = pageWidth / 2;
-
-    doc.fontSize(10).fillColor(colors.textSecondary);
-    doc.text("Income", startX, summaryY, {
-      width: halfWidth,
-      align: "center",
-    });
-    doc.fontSize(16).fillColor(colors.success);
-    doc.text(formatCurrency(totalIncome), startX, summaryY + 14, {
-      width: halfWidth,
-      align: "center",
-    });
-
-    doc
-      .moveTo(startX + halfWidth, cardTop + 78)
-      .lineTo(startX + halfWidth, cardTop + cardHeight - 10)
-      .strokeColor(colors.border)
-      .lineWidth(1)
-      .stroke();
-
-    doc.fontSize(10).fillColor(colors.textSecondary);
-    doc.text("Expense", startX + halfWidth, summaryY, {
-      width: halfWidth,
-      align: "center",
-    });
-    doc.fontSize(16).fillColor(colors.error);
-    doc.text(formatCurrency(totalExpense), startX + halfWidth, summaryY + 14, {
-      width: halfWidth,
-      align: "center",
-    });
-
-    let currentY = cardTop + cardHeight + 30;
-
-    doc.fontSize(16).fillColor(colors.textPrimary);
-    doc.text("Transactions", startX, currentY);
-    currentY += 25;
-
-    const groupedTransactions = {};
-    transactions.forEach((t) => {
-      const dateKey = formatDate(t.date);
-      if (!groupedTransactions[dateKey]) {
-        groupedTransactions[dateKey] = [];
-      }
-      groupedTransactions[dateKey].push(t);
-    });
-
-    const getCategoryInitials = (name) => {
-      if (!name) return "";
-      const words = name.split(" ");
-      if (words.length >= 2) {
-        return (words[0][0] + words[1][0]).toUpperCase();
-      }
-      return name.substring(0, 2).toUpperCase();
-    };
-
-    Object.keys(groupedTransactions).forEach((dateKey) => {
-      if (currentY > doc.page.height - 100) {
-        doc.addPage();
-        currentY = 40;
-      }
-
-      doc
-        .roundedRect(startX, currentY, pageWidth, 28, 6)
-        .fill(colors.background);
-      doc.fontSize(11).fillColor(colors.textSecondary);
-      doc.text(dateKey, startX + 12, currentY + 8);
-      currentY += 35;
-
-      groupedTransactions[dateKey].forEach((t, index) => {
-        if (currentY > doc.page.height - 80) {
-          doc.addPage();
-          currentY = 40;
-        }
-
-        const rowHeight = 50;
-        const avatarSize = 36;
-        const avatarX = startX + 10;
-        const avatarY = currentY + 7;
-
-        const avatarColor =
-          t.type === "income"
-            ? { bg: "#e6f4ea", text: colors.success }
-            : { bg: "#fce8e6", text: colors.error };
-
-        doc
-          .circle(
-            avatarX + avatarSize / 2,
-            avatarY + avatarSize / 2,
-            avatarSize / 2
-          )
-          .fill(avatarColor.bg);
-
-        doc.fontSize(12).fillColor(avatarColor.text);
-        const initials = getCategoryInitials(t.category?.name || "");
-        doc.text(initials, avatarX + 5, avatarY + 12, {
-          width: avatarSize - 10,
-          align: "center",
-        });
-
-        const textX = avatarX + avatarSize + 12;
-        doc.fontSize(13).fillColor(colors.textPrimary);
-        doc.text(t.category?.name || "Unknown", textX, currentY + 10, {
-          width: 200,
-          lineBreak: false,
-        });
-
-        doc.fontSize(10).fillColor(colors.textSecondary);
-        doc.text(t.notes || "No description", textX, currentY + 27, {
-          width: 200,
-          lineBreak: false,
-        });
-
-        const amountX = startX + pageWidth - 120;
-        const amountColor = t.type === "income" ? colors.success : colors.error;
-        const amountPrefix = t.type === "income" ? "+ " : "- ";
-        doc.fontSize(13).fillColor(amountColor);
-        doc.text(
-          amountPrefix + formatCurrency(t.amount),
-          amountX,
-          currentY + 10,
-          {
-            width: 110,
-            align: "right",
-          }
-        );
-
-        doc.fontSize(9).fillColor(colors.textSecondary);
-        doc.text(
-          new Date(t.date).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-          }),
-          amountX,
-          currentY + 28,
-          { width: 110, align: "right" }
-        );
-
-        currentY += rowHeight;
-
-        if (index < groupedTransactions[dateKey].length - 1) {
+      let currentX = startX;
+      columns.forEach((col, i) => {
+        // White separator lines
+        if (i > 0) {
           doc
-            .moveTo(textX, currentY - 5)
-            .lineTo(startX + pageWidth - 10, currentY - 5)
-            .strokeColor(colors.border)
             .lineWidth(0.5)
+            .moveTo(currentX, y + 5)
+            .lineTo(currentX, y + 25)
+            .strokeColor("rgba(255,255,255,0.3)")
             .stroke();
         }
+
+        doc.text(col.header, currentX + 8, y + 9, {
+          width: col.width - 16,
+          align: col.align,
+        });
+        currentX += col.width;
       });
 
-      currentY += 10;
+      // Reset Styles
+      doc.font(activeFont).fillColor(colors.textPrimary);
+      return y + 30;
+    };
+
+    // --- Title Section ---
+    doc.rect(0, 0, doc.page.width, 100).fill("#F8F9FA"); // Light header bg for page
+
+    doc
+      .fillColor(colors.primary)
+      .fontSize(22)
+      .font(boldFont)
+      .text("Expense Report", startX, 35);
+
+    doc
+      .fillColor(colors.textSecondary)
+      .fontSize(10)
+      .font(activeFont)
+      .text(`Generated on ${formatDate(new Date())}`, startX, 65);
+
+    currentY = 110;
+
+    // Draw Initial Headers
+    currentY = drawTableHeaders(currentY);
+
+    // 5. Render Transaction Rows
+    doc.fontSize(9);
+
+    transactions.forEach((t, rowIndex) => {
+      const isIncome = t.type === "income";
+      const typeLabel = t.type.charAt(0).toUpperCase() + t.type.slice(1);
+
+      const rowData = [
+        formatDate(t.date),
+        t.category?.name || "Uncategorized",
+        t.notes || "-",
+        typeLabel,
+        formatCurrency(t.amount),
+      ];
+
+      // A. Calculate Row Height
+      let maxCellHeight = 0;
+      rowData.forEach((text, index) => {
+        const height = doc.heightOfString(text, {
+          width: columns[index].width - 16, // account for padding
+        });
+        if (height > maxCellHeight) maxCellHeight = height;
+      });
+
+      const rowHeight = maxCellHeight + 16; // Add generous padding
+
+      // B. Check Page Break
+      if (currentY + rowHeight > doc.page.height - 50) {
+        doc.addPage();
+        currentY = 50;
+        currentY = drawTableHeaders(currentY);
+        doc.fontSize(9); // Reset font size after header
+      }
+
+      // C. Draw Zebra Striping Background
+      // Even rows get white, Odd rows get light color (or vice versa)
+      const rowColor = rowIndex % 2 === 0 ? colors.rowEven : colors.rowOdd;
+      doc.rect(startX, currentY, pageWidth, rowHeight).fill(rowColor);
+
+      // Draw soft bottom border
+      doc
+        .moveTo(startX, currentY + rowHeight)
+        .lineTo(startX + pageWidth, currentY + rowHeight)
+        .lineWidth(0.5)
+        .strokeColor(colors.border)
+        .stroke();
+
+      // D. Draw Content
+      let currentX = startX;
+      rowData.forEach((text, index) => {
+        // D.1 Specific Column Styling
+        let textColor = colors.textPrimary;
+        let fontToUse = activeFont;
+
+        // Style "Amount" column
+        if (index === 4) {
+          textColor = isIncome ? colors.success : colors.error;
+          fontToUse = boldFont;
+        }
+        // Style "Type" column
+        if (index === 3) {
+          textColor = colors.textSecondary;
+        }
+
+        doc.fillColor(textColor).font(fontToUse);
+
+        // D.2 Draw Text
+        doc.text(text, currentX + 8, currentY + 8, {
+          width: columns[index].width - 16,
+          align: columns[index].align,
+        });
+
+        // Vertical Separators (Subtle)
+        if (index < columns.length - 1) {
+          doc
+            .moveTo(currentX + columns[index].width, currentY)
+            .lineTo(currentX + columns[index].width, currentY + rowHeight)
+            .lineWidth(0.5)
+            .strokeColor(colors.border)
+            .stroke();
+        }
+
+        currentX += columns[index].width;
+      });
+
+      currentY += rowHeight;
     });
 
-    doc.fontSize(9).fillColor(colors.textSecondary);
+    // 6. Summary Section
+    const summaryHeight = 100;
+    if (currentY + summaryHeight > doc.page.height - 50) {
+      doc.addPage();
+      currentY = 50;
+    }
+
+    currentY += 30;
+
+    // Calculate Totals
+    const totalIncome = transactions
+      .filter((t) => t.type === "income")
+      .reduce((s, t) => s + t.amount, 0);
+    const totalExpense = transactions
+      .filter((t) => t.type === "expense")
+      .reduce((s, t) => s + t.amount, 0);
+    const netBalance = totalIncome - totalExpense;
+
+    // Draw Summary Card Background (Optional, helps it stand out)
+    const summaryWidth = 250;
+    const summaryX = startX + pageWidth - summaryWidth;
+
+    doc
+      .roundedRect(summaryX - 10, currentY - 10, summaryWidth + 10, 90, 8)
+      .fill(colors.rowOdd);
+
+    doc.fontSize(11).font(boldFont);
+
+    const labelX = summaryX;
+    const valueX = startX + pageWidth - 10; // Align right edge
+
+    // Income
+    doc.fillColor(colors.textSecondary).text("Total Income:", labelX, currentY);
+    doc
+      .fillColor(colors.success)
+      .text(formatCurrency(totalIncome), labelX, currentY, {
+        align: "right",
+        width: summaryWidth,
+      });
+
+    currentY += 25;
+
+    // Expense
+    doc
+      .fillColor(colors.textSecondary)
+      .text("Total Expense:", labelX, currentY);
+    doc
+      .fillColor(colors.error)
+      .text(formatCurrency(totalExpense), labelX, currentY, {
+        align: "right",
+        width: summaryWidth,
+      });
+
+    currentY += 25;
+
+    // Line
+    doc
+      .moveTo(labelX, currentY)
+      .lineTo(valueX, currentY)
+      .strokeColor(colors.border)
+      .stroke();
+    currentY += 10;
+
+    // Net Balance
+    doc.fontSize(13);
+    doc.fillColor(colors.textPrimary).text("Net Balance:", labelX, currentY);
+
+    const balanceColor = netBalance >= 0 ? colors.primary : colors.error;
+    doc
+      .fillColor(balanceColor)
+      .text(formatCurrency(netBalance), labelX, currentY, {
+        align: "right",
+        width: summaryWidth,
+      });
+
+    // 7. Footer
+    doc.fontSize(9).font(activeFont).fillColor(colors.textSecondary);
     doc.text("Generated by Expense Tracker App", startX, doc.page.height - 40, {
       align: "center",
       width: pageWidth,
