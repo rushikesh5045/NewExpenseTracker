@@ -744,27 +744,6 @@ const Settings = () => {
             </ListItemButton>
 
             <Divider />
-
-            <ListItemButton onClick={() => handleDialog("deleteAccount", true)}>
-              <ListItemIcon>
-                <DeleteForeverRoundedIcon color="error" />
-              </ListItemIcon>
-              <ListItemText
-                primary={t("Delete account")}
-                secondary={t(
-                  "Permanently delete your account and all your data"
-                )}
-                primaryTypographyProps={{
-                  fontFamily: '"Google Sans", "Roboto", sans-serif',
-                  fontWeight: 400,
-                  color: theme.palette.error.main,
-                }}
-                secondaryTypographyProps={{
-                  fontFamily: '"Google Sans Text", "Roboto", sans-serif',
-                }}
-              />
-              <KeyboardArrowRightRoundedIcon color="action" />
-            </ListItemButton>
           </List>
         )}
       </Paper>
@@ -819,24 +798,6 @@ const Settings = () => {
           </ListItemButton>
 
           <Divider />
-
-          <ListItemButton onClick={() => handleDialog("clearData", true)}>
-            <ListItemIcon>
-              <DeleteForeverRoundedIcon />
-            </ListItemIcon>
-            <ListItemText
-              primary={t("clear_all_data")}
-              secondary={t("delete_all_your_transactions_and_categories")}
-              primaryTypographyProps={{
-                fontFamily: '"Google Sans", "Roboto", sans-serif',
-                fontWeight: 400,
-              }}
-              secondaryTypographyProps={{
-                fontFamily: '"Google Sans Text", "Roboto", sans-serif',
-              }}
-            />
-            <KeyboardArrowRightRoundedIcon color="action" />
-          </ListItemButton>
         </List>
       </Paper>
 
